@@ -250,7 +250,7 @@ function DeliveryDetailModal({
               <span className="font-mono text-xs font-bold">≈ 1,248 хэрэглэгч</span>
               <span className="font-black text-outline text-[10px] uppercase tracking-wider pt-1">Илгээгч</span>
               <span className="font-bold text-on-surface">TokTok CS Аккаунт</span>
-              <span className="font-black text-outline text-[10px] uppercase tracking-wider pt-1">Захиргааны тэмдэглэл</span>
+              <span className="font-black text-outline text-[10px] uppercase tracking-wider pt-1"> тэмдэглэл</span>
               <span className="text-on-surface-variant font-bold italic text-xs">— хоосон —</span>
             </div>
           </div>

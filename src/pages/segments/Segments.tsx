@@ -13,6 +13,7 @@ import {
   Check,
   FileCode2,
   PenLine,
+  Upload,
   ChevronRight,
   Info,
 } from "lucide-react";
@@ -402,6 +403,384 @@ function SegmentMethodPickerModal({
   );
 }
 
+function CreateSegmentCsvModal({
+  open,
+  onClose,
+  onCreate,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onCreate: (next: SegmentSummary) => void;
+}) {
+  const [name, setName] = useState("");
+  const [note, setNote] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [rows, setRows] = useState<number | null>(null);
+  const [reading, setReading] = useState(false);
+
+  React.useEffect(() => {
+    if (!open) return;
+    setName("");
+    setNote("");
+    setFile(null);
+    setRows(null);
+    setReading(false);
+  }, [open]);
+
+  if (!open) return null;
+
+  const updated = new Date().toISOString().slice(0, 10);
+
+  const readRows = (f: File) => {
+    setReading(true);
+    setRows(null);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = String(reader.result ?? "");
+      const lines = text
+        .split(/\r?\n/)
+        .map((l) => l.trim())
+        .filter(Boolean);
+      // naive: assume first row might be header; keep at least 0
+      const computed = Math.max(0, lines.length - 1);
+      setRows(computed);
+      setReading(false);
+    };
+    reader.onerror = () => {
+      setReading(false);
+      setRows(null);
+    };
+    reader.readAsText(f);
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 p-4"
+      role="presentation"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="w-full max-w-2xl rounded-[1.75rem] border-2 border-outline-variant/30 bg-surface-container-lowest shadow-2xl border-b-[6px] overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-8 py-5 border-b border-outline-variant/20">
+          <div>
+            <span className="text-[10px] font-black text-outline uppercase tracking-[0.2em] block">
+              Сегмент · CSV
+            </span>
+            <span className="text-lg font-black text-on-surface tracking-tight">
+              CSV файл байршуулж үүсгэх
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-2 rounded-xl hover:bg-surface-container text-on-surface-variant"
+            aria-label="Хаах"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-8 space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <label className="block sm:col-span-2">
+              <span className="text-[10px] font-black text-outline uppercase tracking-wider">
+                Сегментийн нэр <span className="text-error">*</span>
+              </span>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Ж: Найзын бүртгэл (CSV)"
+                className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold outline-none focus:border-primary-container border-b-[4px]"
+              />
+            </label>
+
+            <label className="block sm:col-span-2">
+              <span className="text-[10px] font-black text-outline uppercase tracking-wider">
+                CSV файл <span className="text-error">*</span>
+              </span>
+              <div className="mt-2 rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-4 border-b-[4px]">
+                <div className="flex flex-wrap items-center gap-3 justify-between">
+                  <div className="min-w-[220px]">
+                    <div className="text-xs font-extrabold text-on-surface">
+                      {file ? file.name : "Файл сонгоогүй"}
+                    </div>
+                    <div className="text-[11px] font-bold text-on-surface-variant/70">
+                      UID жагсаалттай CSV (1 багана эсвэл header-тэй байж болно)
+                    </div>
+                  </div>
+                  <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-container text-on-primary-container text-[10px] font-black uppercase cursor-pointer">
+                    <Upload className="w-4 h-4" />
+                    Файл сонгох
+                    <input
+                      type="file"
+                      accept=".csv,text/csv"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0] ?? null;
+                        setFile(f);
+                        if (f) readRows(f);
+                        else setRows(null);
+                      }}
+                    />
+                  </label>
+                </div>
+
+                <div className="mt-3 text-[11px] font-bold text-on-surface-variant">
+                  {reading ? (
+                    <span className="font-mono">Reading…</span>
+                  ) : rows != null ? (
+                    <>
+                      Ойролцоогоор{" "}
+                      <span className="font-mono font-black text-on-surface">
+                        {rows.toLocaleString()}
+                      </span>{" "}
+                      мөр
+                    </>
+                  ) : (
+                    "—"
+                  )}
+                </div>
+              </div>
+            </label>
+
+            <label className="block sm:col-span-2">
+              <span className="text-[10px] font-black text-outline uppercase tracking-wider">
+                 тэмдэглэл
+              </span>
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Тэмдэглэл…"
+                rows={3}
+                className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold outline-none focus:border-primary-container border-b-[4px] resize-none"
+              />
+            </label>
+          </div>
+        </div>
+
+        <div className="px-8 pb-8 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-6 py-3 rounded-xl border-2 border-outline-variant font-black text-xs"
+          >
+            Болих
+          </button>
+          <button
+            type="button"
+            disabled={!name.trim() || !file}
+            onClick={() => {
+              if (!file) return;
+              const next: SegmentSummary = {
+                name: name.trim(),
+                type: "CSV",
+                updated,
+                note,
+                count: rows ?? undefined,
+                file: {
+                  name: file.name,
+                  size: file.size,
+                  rows: rows ?? 0,
+                },
+              };
+              onCreate(next);
+              onClose();
+            }}
+            className={cn(
+              "px-6 py-3 rounded-xl font-black text-xs flex items-center gap-2 shadow-[3px_3px_0px_#6b4c00]",
+              !name.trim() || !file
+                ? "bg-outline-variant/30 text-on-surface-variant cursor-not-allowed shadow-none"
+                : "bg-primary-container text-on-primary-container",
+            )}
+          >
+            <Check className="w-4 h-4" />
+            Үүсгэх
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function CreateSegmentQueryModal({
+  open,
+  onClose,
+  onCreate,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onCreate: (next: SegmentSummary) => void;
+}) {
+  const [name, setName] = useState("");
+  const [note, setNote] = useState("");
+  const [sql, setSql] = useState("");
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ count: number; ms: number } | null>(null);
+
+  React.useEffect(() => {
+    if (!open) return;
+    setName("");
+    setNote("");
+    setSql("SELECT line_user_id AS line_user_key_id\nFROM `project.dataset.table`\nWHERE 1=1");
+    setTesting(false);
+    setTestResult(null);
+  }, [open]);
+
+  if (!open) return null;
+
+  const updated = new Date().toISOString().slice(0, 10);
+
+  const runTest = () => {
+    setTesting(true);
+    setTestResult(null);
+    window.setTimeout(() => {
+      setTesting(false);
+      setTestResult({
+        count: 120 + Math.floor(Math.random() * 900),
+        ms: 180 + Math.floor(Math.random() * 380),
+      });
+    }, 650);
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 p-4"
+      role="presentation"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-[1.75rem] border-2 border-outline-variant/30 bg-surface-container-lowest shadow-2xl border-b-[6px] custom-scrollbar"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="sticky top-0 z-10 flex items-center justify-between px-8 py-5 border-b border-outline-variant/20 bg-surface-container-lowest/95 backdrop-blur-sm">
+          <div>
+            <span className="text-[10px] font-black text-outline uppercase tracking-[0.2em] block">
+              Сегмент · Query
+            </span>
+            <span className="text-lg font-black text-on-surface tracking-tight">
+              Query бичиж үүсгэх
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={runTest}
+              disabled={testing || !sql.trim()}
+              className="px-3 py-2 rounded-xl border-2 border-outline-variant/25 text-[10px] font-black uppercase flex items-center gap-2 hover:bg-surface-container-low disabled:opacity-50"
+            >
+              <FileBarChart className="w-4 h-4" />
+              {testing ? "Тест…" : "Тест"}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-2 rounded-xl hover:bg-surface-container ml-2"
+              aria-label="Хаах"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        <div className="p-8 space-y-6">
+          {testResult && (
+            <div className="rounded-2xl border border-primary-container/30 bg-primary-container/10 p-4 text-xs font-bold text-on-surface flex items-center gap-3">
+              <Users className="w-4 h-4 text-primary" />
+              Ойролцоогоор хэрэглэгч:{" "}
+              <span className="font-mono font-black text-on-surface text-sm">
+                {testResult.count.toLocaleString()}
+              </span>
+              <span className="ml-auto font-mono text-[10px] text-on-surface-variant">
+                {testResult.ms} ms
+              </span>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <label className="block sm:col-span-2">
+              <span className="text-[10px] font-black text-outline uppercase tracking-wider">
+                Сегментийн нэр <span className="text-error">*</span>
+              </span>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Ж: Битүүмжлэгдээгүй (Query)"
+                className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold outline-none focus:border-primary-container border-b-[4px]"
+              />
+            </label>
+
+            <label className="block sm:col-span-2">
+              <span className="text-[10px] font-black text-outline uppercase tracking-wider">
+                SQL Query <span className="text-error">*</span>
+              </span>
+              <textarea
+                value={sql}
+                onChange={(e) => setSql(e.target.value)}
+                rows={10}
+                className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-[12px] font-mono text-on-surface outline-none focus:border-primary-container border-b-[4px] resize-none"
+              />
+            </label>
+
+            <label className="block sm:col-span-2">
+              <span className="text-[10px] font-black text-outline uppercase tracking-wider">
+                 тэмдэглэл
+              </span>
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Тэмдэглэл…"
+                rows={3}
+                className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold outline-none focus:border-primary-container border-b-[4px] resize-none"
+              />
+            </label>
+          </div>
+        </div>
+
+        <div className="px-8 pb-8 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-6 py-3 rounded-xl border-2 border-outline-variant font-black text-xs"
+          >
+            Болих
+          </button>
+          <button
+            type="button"
+            disabled={!name.trim() || !sql.trim()}
+            onClick={() => {
+              const next: SegmentSummary = {
+                name: name.trim(),
+                type: "Query",
+                updated,
+                note,
+                sql,
+                count: testResult?.count,
+              };
+              onCreate(next);
+              onClose();
+            }}
+            className={cn(
+              "px-6 py-3 rounded-xl font-black text-xs flex items-center gap-2 shadow-[3px_3px_0px_#6b4c00]",
+              !name.trim() || !sql.trim()
+                ? "bg-outline-variant/30 text-on-surface-variant cursor-not-allowed shadow-none"
+                : "bg-primary-container text-on-primary-container",
+            )}
+          >
+            <Check className="w-4 h-4" />
+            Үүсгэх
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 function SegmentFilterDetailModal({
   open,
   onClose,
@@ -542,7 +921,7 @@ function SegmentFilterDetailModal({
             </span>
 
             <span className="font-black text-outline text-[10px] uppercase tracking-wider pt-1">
-              Захиргааны тэмдэглэл
+               тэмдэглэл
             </span>
             {editing ? (
               <textarea
@@ -728,128 +1107,186 @@ function CreateSegmentOverlay({
         </aside>
 
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-          <div className="max-w-3xl space-y-8">
-            <label className="block">
-              <span className="text-[10px] font-black text-outline uppercase tracking-wider">
-                Сегментийн нэр <span className="text-error">*</span>
-              </span>
-              <input
-                placeholder="Сегментийн нэрээ оруулна уу"
-                className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold text-on-surface outline-none focus:border-primary-container border-b-[4px]"
-              />
-            </label>
+          <div className="max-w-4xl space-y-8">
+            <div className="rounded-[1.75rem] border-2 border-outline-variant/25 bg-surface-container-lowest overflow-hidden border-b-[6px] shadow-sm">
+              <div className="px-6 py-5 border-b border-outline-variant/15 bg-surface-container-low">
+                <div className="text-[10px] font-black text-outline uppercase tracking-[0.2em]">
+                  Үндсэн мэдээлэл
+                </div>
+                <div className="mt-1 text-lg font-black text-on-surface tracking-tight">
+                  Сегмент үүсгэх
+                </div>
+              </div>
+              <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <label className="block sm:col-span-2">
+                  <span className="text-[10px] font-black text-outline uppercase tracking-wider">
+                    Сегментийн нэр <span className="text-error">*</span>
+                  </span>
+                  <input
+                    placeholder="Сегментийн нэрээ оруулна уу"
+                    className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold text-on-surface outline-none focus:border-primary-container border-b-[4px]"
+                  />
+                </label>
 
-            <div>
-              <div className="flex flex-wrap items-end justify-between gap-4 mb-2">
-                <span className="text-[10px] font-black text-outline uppercase tracking-wider">
-                  Сегментийн нөхцөл <span className="text-error">*</span>
-                </span>
-                <div className="flex rounded-xl border-2 border-outline-variant/30 p-1 bg-surface-container-low">
+                <label className="block">
+                  <span className="text-[10px] font-black text-outline uppercase tracking-wider inline-flex items-center gap-2">
+                    Авах дээд хязгаар <Info className="w-3.5 h-3.5" />
+                  </span>
+                  <input
+                    placeholder="Тоог оруулах..."
+                    className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold border-b-[4px] outline-none focus:border-primary-container"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="text-[10px] font-black text-outline uppercase tracking-wider">
+                     тэмдэглэл
+                  </span>
+                  <textarea
+                    placeholder="Тэмдэглэл оруулах..."
+                    rows={3}
+                    className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold border-b-[4px] outline-none focus:border-primary-container resize-none"
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div className="rounded-[1.75rem] border-2 border-outline-variant/25 bg-surface-container-lowest overflow-hidden border-b-[6px] shadow-sm">
+              <div className="px-6 py-5 border-b border-outline-variant/15 bg-surface-container-low flex flex-wrap items-center gap-4 justify-between">
+                <div className="min-w-[220px]">
+                  <div className="text-[10px] font-black text-outline uppercase tracking-[0.2em]">
+                    Нөхцөл <span className="text-error">*</span>
+                  </div>
+                  <div className="mt-1 text-sm font-black text-on-surface">
+                    Сегментийн дүрэм / шүүлтүүр
+                  </div>
+                </div>
+
+                <div className="flex rounded-2xl border-2 border-outline-variant/25 p-1 bg-surface-container-lowest">
                   <button
                     type="button"
                     onClick={() => setMode("builder")}
                     className={cn(
-                      "px-4 py-1.5 rounded-lg text-[10px] font-black uppercase flex items-center gap-2 transition-all",
+                      "px-4 py-2 rounded-xl text-[10px] font-black uppercase flex items-center gap-2 transition-all border-2",
                       mode === "builder"
-                        ? "bg-primary-container text-on-primary-container shadow-sm"
-                        : "text-on-surface-variant",
+                        ? "bg-primary-container text-on-primary-container shadow-sm border-outline-variant/30"
+                        : "text-on-surface-variant border-transparent hover:bg-surface-container-low",
                     )}
                   >
-                    <LayoutGrid className="w-3.5 h-3.5" />
+                    <LayoutGrid className="w-4 h-4" />
                     Builder
                   </button>
                   <button
                     type="button"
                     onClick={() => setMode("expr")}
                     className={cn(
-                      "px-4 py-1.5 rounded-lg text-[10px] font-black uppercase flex items-center gap-2 transition-all",
+                      "px-4 py-2 rounded-xl text-[10px] font-black uppercase flex items-center gap-2 transition-all border-2",
                       mode === "expr"
-                        ? "bg-primary-container text-on-primary-container shadow-sm"
-                        : "text-on-surface-variant",
+                        ? "bg-primary-container text-on-primary-container shadow-sm border-outline-variant/30"
+                        : "text-on-surface-variant border-transparent hover:bg-surface-container-low",
                     )}
                   >
-                    <FileCode2 className="w-3.5 h-3.5" />
+                    <FileCode2 className="w-4 h-4" />
                     Илэрхийлэл
                   </button>
                 </div>
               </div>
-              <div className="rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest border-b-[4px] overflow-hidden">
-                <div className="flex flex-wrap gap-2 items-center justify-between px-4 py-3 border-b border-outline-variant/15 bg-surface-container-low">
-                  <div className="flex rounded-lg border border-outline-variant/25 overflow-hidden text-[10px] font-black">
-                    {(["AND", "OR", "EXCEPT"] as const).map((op, i) => (
-                      <button
-                        key={op}
-                        type="button"
-                        className={cn(
-                          "px-3 py-1.5",
-                          i === 0
-                            ? "bg-primary-container text-on-primary-container"
-                            : "bg-transparent text-on-surface-variant",
-                        )}
-                      >
-                        {op}
-                      </button>
-                    ))}
+
+              <div className="p-6">
+                <div className="flex flex-wrap gap-2 items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black text-outline uppercase tracking-wider">
+                      Operator
+                    </span>
+                    <div className="flex rounded-xl border-2 border-outline-variant/25 overflow-hidden text-[10px] font-black bg-surface-container-lowest">
+                      {(["AND", "OR", "EXCEPT"] as const).map((op, i) => (
+                        <button
+                          key={op}
+                          type="button"
+                          className={cn(
+                            "px-3 py-2",
+                            i === 0
+                              ? "bg-primary-container text-on-primary-container"
+                              : "bg-transparent text-on-surface-variant hover:bg-surface-container-low",
+                          )}
+                        >
+                          {op}
+                        </button>
+                      ))}
+                    </div>
                   </div>
+
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      className="px-3 py-1.5 rounded-lg border border-outline-variant text-[10px] font-black uppercase flex items-center gap-1"
+                      className="px-4 py-2 rounded-xl border-2 border-outline-variant/25 bg-surface-container-lowest text-[10px] font-black uppercase flex items-center gap-2 hover:bg-surface-container-low transition-colors"
                     >
-                      <Plus className="w-3.5 h-3.5" />
+                      <Plus className="w-4 h-4" />
                       Шүүлт нэмэх
                     </button>
                     <button
                       type="button"
-                      className="px-3 py-1.5 rounded-lg border border-outline-variant text-[10px] font-black uppercase flex items-center gap-1"
+                      className="px-4 py-2 rounded-xl border-2 border-outline-variant/25 bg-surface-container-lowest text-[10px] font-black uppercase flex items-center gap-2 hover:bg-surface-container-low transition-colors"
                     >
-                      <Plus className="w-3.5 h-3.5" />
+                      <Plus className="w-4 h-4" />
                       Групп нэмэх
                     </button>
                   </div>
                 </div>
+
                 {mode === "builder" ? (
-                  <div className="min-h-[180px] flex items-center justify-center text-sm font-bold text-on-surface-variant/60 italic px-6 text-center">
-                    Зүүн талаас шүүлтүүр чирж эндээ оруулна уу
+                  <div className="rounded-2xl border-2 border-dashed border-outline-variant/30 bg-surface-container-lowest p-8">
+                    <div className="text-center">
+                      <div className="text-sm font-black text-on-surface">
+                        Зүүн талаас шүүлтүүр чирж эндээ оруулна уу
+                      </div>
+                      <div className="mt-2 text-xs font-bold text-on-surface-variant/70 italic">
+                        (Builder нь mock UI — одоогоор дүрэм хадгалах логик
+                        холбогдоогүй)
+                      </div>
+                    </div>
                   </div>
                 ) : (
-                  <pre className="p-6 text-[12px] font-mono bg-inverse-surface/5 text-on-surface overflow-x-auto">
-                    filters.
-                    <span className="text-primary font-bold">include</span>(
-                    <span className="text-secondary">
-                      &quot;OJIMA_iOS&quot;
-                    </span>
-                    ) <span className="text-error font-bold">AND</span> filters.
-                    <span className="text-primary font-bold">exclude</span>(
-                    <span className="text-secondary">
-                      &quot;Унтсан_хэрэглэгч&quot;
-                    </span>
-                    )
-                  </pre>
+                  <div className="rounded-2xl border-2 border-outline-variant/25 bg-inverse-surface/5 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-outline-variant/15 bg-surface-container-low flex items-center justify-between gap-3">
+                      <span className="text-[10px] font-black text-outline uppercase tracking-[0.2em]">
+                        Query / Expression
+                      </span>
+                      <button
+                        type="button"
+                        className="px-3 py-2 rounded-xl border-2 border-outline-variant/25 bg-surface-container-lowest text-[10px] font-black uppercase hover:bg-surface-container-low transition-colors"
+                      >
+                        Copy
+                      </button>
+                    </div>
+                    <pre className="p-5 text-[12px] font-mono text-on-surface overflow-x-auto custom-scrollbar">
+                      filters.
+                      <span className="text-primary font-bold">include</span>(
+                      <span className="text-secondary">
+                        &quot;Сэдэлжүүлэлт_Class2&quot;
+                      </span>
+                      ) <span className="text-error font-bold">AND</span>{" "}
+                      filters.
+                      <span className="text-primary font-bold">exclude</span>(
+                      <span className="text-secondary">
+                        &quot;Унтсан_хэрэглэгч&quot;
+                      </span>
+                      )
+                    </pre>
+                  </div>
                 )}
+
+                <div className="mt-4 flex items-center justify-between gap-3 text-xs font-bold text-on-surface-variant/75">
+                  <span className="inline-flex items-center gap-2">
+                    <Info className="w-4 h-4" />
+                    Preview UI only · Backend rules not wired
+                  </span>
+                  <span className="font-mono text-[10px] text-on-surface-variant">
+                    Updated just now
+                  </span>
+                </div>
               </div>
             </div>
-
-            <label className="block">
-              <span className="text-[10px] font-black text-outline uppercase tracking-wider inline-flex items-center gap-2">
-                Авах дээд хязгаар <Info className="w-3.5 h-3.5" />
-              </span>
-              <input
-                placeholder="Тоог оруулах..."
-                className="mt-2 w-full max-w-xs rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold border-b-[4px] outline-none focus:border-primary-container"
-              />
-            </label>
-
-            <label className="block">
-              <span className="text-[10px] font-black text-outline uppercase tracking-wider">
-                Захиргааны тэмдэглэл
-              </span>
-              <textarea
-                placeholder="Тэмдэглэл оруулах..."
-                rows={4}
-                className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold border-b-[4px] outline-none focus:border-primary-container resize-none"
-              />
-            </label>
           </div>
         </div>
       </div>
@@ -861,6 +1298,8 @@ export default function Segments() {
   const [methodOpen, setMethodOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [csvOpen, setCsvOpen] = useState(false);
+  const [queryOpen, setQueryOpen] = useState(false);
   const [usersOpen, setUsersOpen] = useState(false);
   const [selected, setSelected] = useState<SegmentSummary | null>(null);
   const [segments, setSegments] = useState<SegmentSummary[]>(
@@ -1004,7 +1443,19 @@ export default function Segments() {
         onPick={(m) => {
           setMethodOpen(false);
           if (m === "filter") setCreateOpen(true);
+          if (m === "csv") setCsvOpen(true);
+          if (m === "query") setQueryOpen(true);
         }}
+      />
+      <CreateSegmentCsvModal
+        open={csvOpen}
+        onClose={() => setCsvOpen(false)}
+        onCreate={(next) => setSegments((prev) => [next, ...prev])}
+      />
+      <CreateSegmentQueryModal
+        open={queryOpen}
+        onClose={() => setQueryOpen(false)}
+        onCreate={(next) => setSegments((prev) => [next, ...prev])}
       />
       <SegmentFilterDetailModal
         open={filterOpen}

@@ -43,7 +43,6 @@ const MOCK_DELIVERIES_BASE: Array<Omit<SegmentDelivery, 'surface'>> = [
   { id: 12, status: 'reserved', name: 'Тест', segment: 'Шинэ_Тест', schedule: '2026-03-03 17:30', message: 'Купон_шинэчлэлт', messageType: 'message' },
   { id: 13, status: 'draft', name: 'Тест_Отта', segment: 'Сегмент', schedule: '2026-02-13 12:00', message: 'Тест ⚠', messageType: 'message', warn: true },
   { id: 14, status: 'draft', name: 'Жишээ_1234', segment: 'Хүлээгдэж_байгаа', schedule: 'Хүлээгдэж_байгаа', message: 'Сонголт_мессеж_хуулбар1', messageType: 'message' },
-  { id: 15, status: 'reserved', name: 'Тест_OJIMA_iOS', segment: 'OJIMA_iOS', schedule: '2026-02-05 15:50', message: 'Шошго_Тест', messageType: 'flex' },
   { id: 16, status: 'draft', name: 'Жишээ_үл_хөдлөх (гишүүн_бүртгэл_дэмжлэг)', segment: 'Хүлээгдэж_байгаа', schedule: 'Хүлээгдэж_байгаа', message: 'Жишээ_үл_хөдлөх (гишүүн_бүртгэл_дэмжлэг)', messageType: 'message' },
   { id: 17, status: 'draft', name: 'Жишээ_үл_хөдлөх (Step_түгээлт + 2 хоног)', segment: 'Хүлээгдэж_байгаа', schedule: 'Хүлээгдэж_байгаа', message: 'Жишээ_үл_хөдлөх (хайлтын зөвлөгөө)', messageType: 'message' },
   { id: 18, status: 'draft', name: 'Жишээ_үл_хөдлөх (хариу мессеж)', segment: 'Хүлээгдэж_байгаа', schedule: 'Хүлээгдэж_байгаа', message: 'Жишээ_үл_хөдлөх_Тест_сэдэв', messageType: 'message' },
@@ -91,7 +90,6 @@ export const MOCK_SEGMENTS: SegmentSummary[] = [
 ];
 
 export const MOCK_FILTER_PALETTE = [
-  'OJIMA_iOS',
   'Унтсан_хэрэглэгч',
   'Сэдэлжүүлэлт_Class2',
   'Сэдэлжүүлэлт_Class1',

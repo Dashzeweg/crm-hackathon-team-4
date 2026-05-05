@@ -19,7 +19,7 @@ export const MOCK_CAMPAIGNS: CampaignSummary[] = [
     segment: 'Найзаар_бүртгүүлсэн_180_хоногийн_дотор',
     objective: 'Анхны 7 хоногийн идэвхийг өсгөх',
     updatedAt: '2026-05-04',
-    owner: 'Munkhuush',
+    owner: 'Gomboo',
     steps: 6,
   },
   {
@@ -29,7 +29,7 @@ export const MOCK_CAMPAIGNS: CampaignSummary[] = [
     segment: 'Унтсан_хэрэглэгч',
     objective: 'Дахин худалдан авалт өдөөх',
     updatedAt: '2026-05-03',
-    owner: 'Munkhuush',
+    owner: 'Gomboo',
     steps: 4,
   },
   {
