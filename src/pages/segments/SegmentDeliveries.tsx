@@ -30,7 +30,7 @@ import {
 import { motion } from 'motion/react';
 import { cn } from '@/src/lib/utils';
 import type { DeliverySurface, MessageType, SegmentDelivery } from '@/src/data/segmentMocks';
-import { MOCK_DELIVERIES } from '@/src/data/segmentMocks';
+import { MOCK_DELIVERIES, MOCK_SEGMENTS } from '@/src/data/segmentMocks';
 import previewBanner from '@/src/assets/banner1.png';
 import previewNotif from '@/src/assets/notif1.png';
 import previewSms from '@/src/assets/sms2.png';
@@ -204,7 +204,7 @@ function DeliveryDetailModal({
         <div className="flex-1 min-w-0 flex flex-col max-h-[92vh]">
           <div className="flex flex-wrap items-start justify-between gap-4 px-6 py-5 border-b border-outline-variant/20 shrink-0">
             <div>
-              <span className="text-[10px] font-black text-outline uppercase tracking-[0.2em]">Сегментийн тарилт</span>
+              <span className="text-[10px] font-black text-outline uppercase tracking-[0.2em]">Сегментийн түгээлт</span>
               <h3 className="text-xl font-black text-on-surface tracking-tight">Дэлгэрэнгүй</h3>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -221,7 +221,7 @@ function DeliveryDetailModal({
                 className="px-3 py-2 rounded-xl border-2 border-outline-variant text-[10px] font-black uppercase flex items-center gap-2"
               >
                 <FlaskConical className="w-4 h-4" />
-                Тэст тарилт
+                Тест түгээлт
               </button>
               <button type="button" onClick={onClose} className="p-2 rounded-xl hover:bg-surface-container" aria-label="Хаах">
                 <X className="w-5 h-5" />
@@ -232,17 +232,17 @@ function DeliveryDetailModal({
             <div className="grid grid-cols-[minmax(0,140px)_1fr] gap-x-6 gap-y-4 text-sm">
               <span className="font-black text-outline text-[10px] uppercase tracking-wider pt-1">Төлөв</span>
               <StatusBadge status={delivery.status} />
-              <span className="font-black text-outline text-[10px] uppercase tracking-wider pt-1">Суваг</span>
-              <SurfaceBadge surface={delivery.surface} />
-              <span className="font-black text-outline text-[10px] uppercase tracking-wider pt-1">Тарилтын нэр</span>
+              <span className="font-black text-outline text-[10px] uppercase tracking-wider pt-1">Түгээлтийн нэр</span>
               <span className="font-extrabold text-on-surface break-words">{delivery.name}</span>
               <span className="font-black text-outline text-[10px] uppercase tracking-wider pt-1">Сегмент</span>
               <button type="button" className="text-left font-extrabold text-primary hover:underline">
                 {delivery.segment}
               </button>
+              <span className="font-black text-outline text-[10px] uppercase tracking-wider pt-1">Урсгал</span>
+              <span className="font-extrabold text-on-surface break-words">{delivery.flow ?? '—'}</span>
               <span className="font-black text-outline text-[10px] uppercase tracking-wider pt-1">Хуваарь</span>
               <span className="font-mono text-xs font-bold text-on-surface-variant">{delivery.schedule}</span>
-              <span className="font-black text-outline text-[10px] uppercase tracking-wider pt-1">Тарилтын мессеж 1</span>
+              <span className="font-black text-outline text-[10px] uppercase tracking-wider pt-1">Түгээлтийн мессеж 1</span>
               <span className="font-extrabold text-primary break-words">{delivery.message}</span>
               <span className="font-black text-outline text-[10px] uppercase tracking-wider pt-1">Нэмэлт параметр</span>
               <span className="text-on-surface-variant font-bold italic text-xs">— тохируулаагүй —</span>
@@ -302,7 +302,7 @@ function ReportsModal({ delivery, onClose }: { delivery: SegmentDelivery | null;
       >
         <div className="sticky top-0 z-10 flex items-center justify-between px-8 py-5 border-b border-outline-variant/20 bg-surface-container-lowest/95 backdrop-blur-sm">
           <div>
-            <span className="text-[10px] font-black text-outline uppercase tracking-[0.2em]">Сегментийн тарилт</span>
+            <span className="text-[10px] font-black text-outline uppercase tracking-[0.2em]">Сегментийн түгээлт</span>
             <h3 className="text-xl font-black text-on-surface">Тайлан</h3>
           </div>
           <button type="button" onClick={onClose} className="p-2 rounded-xl hover:bg-surface-container" aria-label="Хаах">
@@ -311,11 +311,11 @@ function ReportsModal({ delivery, onClose }: { delivery: SegmentDelivery | null;
         </div>
         <div className="p-8 space-y-6">
           <div>
-            <p className="text-xs font-bold text-on-surface-variant mb-1">Тарилтын нэр</p>
+            <p className="text-xs font-bold text-on-surface-variant mb-1">Түгээлтийн нэр</p>
             <p className="text-lg font-black text-on-surface">{delivery.name}</p>
           </div>
           <div>
-            <p className="text-[10px] font-black text-outline uppercase tracking-wider mb-3">Тарилтын үр дүн</p>
+            <p className="text-[10px] font-black text-outline uppercase tracking-wider mb-3">Түгээлтийн үр дүн</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
                 { label: 'Илгээсэн', value: '1,248' },
@@ -333,7 +333,7 @@ function ReportsModal({ delivery, onClose }: { delivery: SegmentDelivery | null;
               ))}
             </div>
             <p className="text-[10px] font-bold text-on-surface-variant mt-3 italic">
-              * Ижил нэртэй өмнөх тарилтуудын бүх үр дүн өчигдрийн өдөр хүртэл нэгтгэгдсэн.
+              * Ижил нэртэй өмнөх түгээлтүүдийн бүх үр дүн өчигдрийн өдөр хүртэл нэгтгэгдсэн.
             </p>
           </div>
           <div>
@@ -391,6 +391,212 @@ function ReportsModal({ delivery, onClose }: { delivery: SegmentDelivery | null;
   );
 }
 
+type CreateDeliveryDraft = {
+  name: string;
+  segment: string;
+  flow: string;
+  scheduleType: 'now' | 'scheduled';
+  scheduledAt: string; // datetime-local
+  messageType: MessageType;
+  message: string;
+};
+
+const FLOW_OPTIONS = [
+  'Шинэ хэрэглэгчийн компанит ажил',
+  'Унтсан хэрэглэгч сэргээх',
+  'Дахин худалдан авалт өдөөх',
+  'Одоо байгаа урсгал (custom)',
+] as const;
+
+function CreateDeliveryModal({
+  open,
+  onClose,
+  onCreate,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onCreate: (draft: CreateDeliveryDraft) => void;
+}) {
+  const [draft, setDraft] = useState<CreateDeliveryDraft>(() => ({
+    name: '',
+    segment: MOCK_SEGMENTS[0]?.name ?? '',
+    flow: FLOW_OPTIONS[0],
+    scheduleType: 'scheduled',
+    scheduledAt: '',
+    messageType: 'message',
+    message: '',
+  }));
+
+  if (!open) return null;
+
+  const canCreate =
+    draft.name.trim().length > 0 &&
+    draft.segment.trim().length > 0 &&
+    draft.flow.trim().length > 0 &&
+    (draft.scheduleType === 'now' || draft.scheduledAt.trim().length > 0);
+
+  return (
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/45 p-4" role="presentation" onClick={onClose}>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[1.75rem] border-2 border-outline-variant/30 bg-surface-container-lowest shadow-2xl border-b-[6px] custom-scrollbar"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="sticky top-0 z-10 flex items-center justify-between px-8 py-5 border-b border-outline-variant/20 bg-surface-container-lowest/95 backdrop-blur-sm">
+          <div>
+            <span className="text-[10px] font-black text-outline uppercase tracking-[0.2em]">Сегментийн түгээлт</span>
+            <h3 className="text-xl font-black text-on-surface">Шинэ үүсгэх</h3>
+          </div>
+          <button type="button" onClick={onClose} className="p-2 rounded-xl hover:bg-surface-container" aria-label="Хаах">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-8 space-y-6">
+          <label className="block">
+            <span className="text-[10px] font-black text-outline uppercase tracking-wider">
+              Түгээлтийн нэр <span className="text-error">*</span>
+            </span>
+            <input
+              value={draft.name}
+              onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
+              placeholder="Ж: Шинэ хэрэглэгч · 7 хоног"
+              className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold outline-none focus:border-primary-container border-b-[4px]"
+            />
+          </label>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <label className="block">
+              <span className="text-[10px] font-black text-outline uppercase tracking-wider">
+                Сегмент <span className="text-error">*</span>
+              </span>
+              <select
+                value={draft.segment}
+                onChange={(e) => setDraft((d) => ({ ...d, segment: e.target.value }))}
+                className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold outline-none focus:border-primary-container border-b-[4px]"
+              >
+                {MOCK_SEGMENTS.map((s) => (
+                  <option key={s.name} value={s.name}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block">
+              <span className="text-[10px] font-black text-outline uppercase tracking-wider">
+                Action flow <span className="text-error">*</span>
+              </span>
+              <select
+                value={draft.flow}
+                onChange={(e) => setDraft((d) => ({ ...d, flow: e.target.value }))}
+                className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold outline-none focus:border-primary-container border-b-[4px]"
+              >
+                {FLOW_OPTIONS.map((f) => (
+                  <option key={f} value={f}>
+                    {f}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <div>
+            <span className="text-[10px] font-black text-outline uppercase tracking-wider">Хуваарь</span>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {(
+                [
+                  { key: 'scheduled' as const, label: 'Хуваарьт' },
+                  { key: 'now' as const, label: 'Одоо' },
+                ] as const
+              ).map((o) => (
+                <button
+                  key={o.key}
+                  type="button"
+                  onClick={() => setDraft((d) => ({ ...d, scheduleType: o.key }))}
+                  className={cn(
+                    'px-4 py-2 rounded-xl text-[10px] font-black uppercase border-2 border-b-[3px]',
+                    draft.scheduleType === o.key
+                      ? 'bg-primary-container text-on-primary-container border-outline-variant'
+                      : 'bg-surface-container-lowest text-on-surface border-outline-variant/30 hover:bg-surface-container-low'
+                  )}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+            {draft.scheduleType === 'scheduled' && (
+              <label className="block mt-3">
+                <span className="text-[10px] font-black text-outline uppercase tracking-wider">
+                  Огноо, цаг <span className="text-error">*</span>
+                </span>
+                <input
+                  type="datetime-local"
+                  value={draft.scheduledAt}
+                  onChange={(e) => setDraft((d) => ({ ...d, scheduledAt: e.target.value }))}
+                  className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold outline-none focus:border-primary-container border-b-[4px]"
+                />
+              </label>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
+            <label className="block sm:col-span-1">
+              <span className="text-[10px] font-black text-outline uppercase tracking-wider">Мессежийн төрөл</span>
+              <select
+                value={draft.messageType}
+                onChange={(e) => setDraft((d) => ({ ...d, messageType: e.target.value as MessageType }))}
+                className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold outline-none focus:border-primary-container border-b-[4px]"
+              >
+                <option value="message">Text</option>
+                <option value="flex">Flex</option>
+                <option value="image">Image</option>
+                <option value="empty">Empty</option>
+              </select>
+            </label>
+
+            <label className="block sm:col-span-2">
+              <span className="text-[10px] font-black text-outline uppercase tracking-wider">Мессеж</span>
+              <textarea
+                value={draft.message}
+                onChange={(e) => setDraft((d) => ({ ...d, message: e.target.value }))}
+                placeholder="Товч мессеж эсвэл тэмдэглэл…"
+                rows={3}
+                className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold outline-none focus:border-primary-container border-b-[4px] resize-none"
+              />
+            </label>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 px-8 py-5 border-t border-outline-variant/20">
+          <button type="button" onClick={onClose} className="px-6 py-3 rounded-xl border-2 border-outline-variant font-black text-xs">
+            Болих
+          </button>
+          <button
+            type="button"
+            disabled={!canCreate}
+            onClick={() => {
+              onCreate(draft);
+              onClose();
+              setDraft((d) => ({ ...d, name: '', message: '', scheduledAt: '' }));
+            }}
+            className={cn(
+              'px-6 py-3 rounded-xl font-black text-xs flex items-center gap-2 border-2 border-b-[4px]',
+              canCreate
+                ? 'bg-primary-container text-on-primary-container border-outline-variant shadow-[4px_4px_0px_#6b4c00]'
+                : 'bg-surface-container text-on-surface-variant border-outline-variant/30 opacity-60 cursor-not-allowed'
+            )}
+          >
+            <Plus className="w-4 h-4" />
+            Үүсгэх
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 function RowActions({ onStop }: { onStop: (e: React.MouseEvent) => void }) {
   return (
     <div className="flex items-center justify-end gap-1" onClick={onStop}>
@@ -412,20 +618,22 @@ export default function SegmentDeliveries() {
   const [layout, setLayout] = useState<LayoutVariant>('default');
   const [selected, setSelected] = useState<SegmentDelivery | null>(null);
   const [reportsFor, setReportsFor] = useState<SegmentDelivery | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [deliveries, setDeliveries] = useState<SegmentDelivery[]>(() => MOCK_DELIVERIES);
 
   const filtered = useMemo(() => {
-    return MOCK_DELIVERIES.filter((d) => {
+    return deliveries.filter((d) => {
       if (tab === 'scheduled') return d.status === 'reserved';
       if (tab === 'draft') return d.status === 'draft';
       return true;
     });
-  }, [tab]);
+  }, [deliveries, tab]);
 
   const counts = useMemo(() => {
-    const reserved = MOCK_DELIVERIES.filter((d) => d.status === 'reserved').length;
-    const draft = MOCK_DELIVERIES.filter((d) => d.status === 'draft').length;
-    return { all: MOCK_DELIVERIES.length, scheduled: reserved, draft };
-  }, []);
+    const reserved = deliveries.filter((d) => d.status === 'reserved').length;
+    const draft = deliveries.filter((d) => d.status === 'draft').length;
+    return { all: deliveries.length, scheduled: reserved, draft };
+  }, [deliveries]);
 
   const stop = (e: React.MouseEvent) => e.stopPropagation();
 
@@ -433,9 +641,9 @@ export default function SegmentDeliveries() {
     <div className="flex flex-col h-full animate-in fade-in duration-500 overflow-y-auto pb-12 custom-scrollbar">
       <div className="flex flex-wrap justify-between items-end gap-6 mb-6">
         <div>
-          <h2 className="text-4xl font-black text-on-surface tracking-tighter mb-2">Сегментийн тарилт</h2>
+          <h2 className="text-4xl font-black text-on-surface tracking-tighter mb-2">Сегментийн түгээлт</h2>
           <p className="text-sm font-bold text-on-surface-variant/70">
-            Хэрэглэгчдийн сегментэд хуваарилсан мессежийн тарилт
+            Хэрэглэгчдийн сегментэд хуваарилсан мессежийн түгээлт
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -444,11 +652,12 @@ export default function SegmentDeliveries() {
             className="px-5 py-2.5 bg-surface-container-lowest border-2 border-outline-variant/30 text-on-surface font-black text-[10px] uppercase rounded-xl flex items-center gap-2 border-b-[4px]"
           >
             <History className="w-4 h-4" />
-            Тарилтын Түүх
+            Түгээлтийн түүх
           </button>
           <button
             type="button"
             className="px-5 py-2.5 bg-primary-container text-on-primary-container rounded-xl font-black text-[10px] uppercase flex items-center gap-2 shadow-[4px_4px_0px_#6b4c00] opacity-90 hover:opacity-100"
+            onClick={() => setCreateOpen(true)}
           >
             <Plus className="w-4 h-4" />
             Шинэ үүсгэх
@@ -462,7 +671,7 @@ export default function SegmentDeliveries() {
       <div className="flex flex-wrap gap-2 mb-4">
         {(
           [
-            { key: 'scheduled' as const, label: 'Хуваарилагдсан тарилт', icon: Calendar, count: counts.scheduled },
+            { key: 'scheduled' as const, label: 'Хуваарьт түгээлт', icon: Calendar, count: counts.scheduled },
             { key: 'draft' as const, label: 'Ноорог', icon: MessageSquare, count: counts.draft },
             { key: 'all' as const, label: 'Бүгд', icon: LayoutGrid, count: counts.all },
           ] as const
@@ -503,7 +712,7 @@ export default function SegmentDeliveries() {
         <div className="flex-1 min-w-[200px] flex items-center gap-2 px-4 py-2 rounded-xl bg-surface-container-lowest border border-outline-variant/25">
           <Search className="w-4 h-4 text-on-surface-variant" />
           <input
-            placeholder="Тарилтын нэрээр хайх..."
+            placeholder="Түгээлтийн нэрээр хайх..."
             className="flex-1 bg-transparent text-xs font-bold outline-none placeholder:text-on-surface-variant/50"
           />
         </div>
@@ -650,16 +859,19 @@ export default function SegmentDeliveries() {
       ) : (
         <div className="bg-surface-container-lowest rounded-[2rem] shadow-xl border border-outline-variant/30 overflow-hidden border-b-[6px]">
           <div className="w-full overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[1040px]">
+            <table className="w-full text-left border-collapse min-w-[900px] table-fixed">
               <thead>
                 <tr className="bg-surface/50 border-b border-outline-variant/20">
                   <th className="py-5 px-6 text-[10px] font-black text-outline uppercase tracking-[0.2em] w-32">Төлөв</th>
-                  <th className="py-5 px-6 text-[10px] font-black text-outline uppercase tracking-[0.2em] w-36">Суваг</th>
-                  <th className="py-5 px-6 text-[10px] font-black text-outline uppercase tracking-[0.2em]">Тарилтын нэр</th>
-                  <th className="py-5 px-6 text-[10px] font-black text-outline uppercase tracking-[0.2em] min-w-[200px]">
+                  <th className="py-5 px-6 text-[10px] font-black text-outline uppercase tracking-[0.2em] w-[260px]">
+                    Түгээлтийн нэр
+                  </th>
+                  <th className="py-5 px-6 text-[10px] font-black text-outline uppercase tracking-[0.2em] w-[260px]">
                     Сегмент / Хуваарь
                   </th>
-                  <th className="py-5 px-6 text-[10px] font-black text-outline uppercase tracking-[0.2em]">Тарилтын мессеж</th>
+                  <th className="py-5 px-6 text-[10px] font-black text-outline uppercase tracking-[0.2em]">
+                    Түгээлтийн мессеж
+                  </th>
                   <th className="w-28" />
                 </tr>
               </thead>
@@ -673,15 +885,14 @@ export default function SegmentDeliveries() {
                     <td className="py-4 px-6 align-top">
                       <StatusBadge status={d.status} />
                     </td>
-                    <td className="py-4 px-6 align-top">
-                      <SurfaceBadge surface={d.surface} />
+                    <td className="py-4 px-6 align-top font-extrabold tracking-tight">
+                      <div className="break-all leading-snug">{d.name}</div>
                     </td>
-                    <td className="py-4 px-6 align-top font-extrabold tracking-tight max-w-[220px]">{d.name}</td>
                     <td className="py-4 px-6 align-top">
                       <div className="space-y-1 text-xs font-bold text-on-surface-variant">
                         <div className="flex items-center gap-2">
                           <GitMerge className="w-3.5 h-3.5 shrink-0 text-on-surface" />
-                          <span>{d.segment}</span>
+                          <span className="truncate">{d.segment}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Clock className="w-3.5 h-3.5 shrink-0" />
@@ -692,7 +903,7 @@ export default function SegmentDeliveries() {
                     <td className="py-4 px-6 align-top">
                       <div className="flex items-center gap-2 flex-wrap">
                         <MessageTypeIcon type={d.messageType} />
-                        <span className="break-words">{d.message}</span>
+                        <span className="break-all">{d.message}</span>
                         {d.warn && <AlertTriangle className="w-4 h-4 text-error shrink-0" />}
                       </div>
                     </td>
@@ -718,6 +929,34 @@ export default function SegmentDeliveries() {
         }}
       />
       <ReportsModal delivery={reportsFor} onClose={() => setReportsFor(null)} />
+      <CreateDeliveryModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreate={(draft) => {
+          setDeliveries((prev) => {
+            const nextId = prev.reduce((m, d) => Math.max(m, d.id), 0) + 1;
+            const schedule =
+              draft.scheduleType === 'now'
+                ? new Date().toISOString().slice(0, 16).replace('T', ' ')
+                : draft.scheduledAt.replace('T', ' ');
+            const status = draft.scheduleType === 'scheduled' ? 'reserved' : 'draft';
+            const message = draft.messageType === 'empty' ? '—' : (draft.message.trim() || '—');
+            return [
+              {
+                id: nextId,
+                status,
+                name: draft.name.trim(),
+                segment: draft.segment,
+                schedule,
+                message,
+                messageType: draft.messageType,
+                flow: draft.flow,
+              },
+              ...prev,
+            ];
+          });
+        }}
+      />
     </div>
   );
 }

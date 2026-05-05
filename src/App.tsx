@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Sidebar from './components/Sidebar';
 import TopNav from './components/TopNav';
-import JourneyBuilder from './pages/campaigns/JourneyBuilder';
 import CampaignCopilot from './pages/campaigns/CampaignCopilot';
+import Campaigns from './pages/campaigns/Campaigns';
+import CampaignDetail from './pages/campaigns/CampaignDetail';
 import Analytics from './pages/analytics/Analytics';
 import Segments from './pages/segments/Segments';
 import SegmentDeliveries from './pages/segments/SegmentDeliveries';
@@ -15,16 +16,67 @@ import Overview from './pages/dashboard/Overview';
 import PlaceholderSettings from './pages/dashboard/PlaceholderSettings';
 import PlaceholderHelp from './pages/dashboard/PlaceholderHelp';
 import { DEFAULT_ROUTE, type AppRouteId } from './navigation/routes';
+import { MOCK_CAMPAIGNS } from './data/campaignMocks';
 
 export default function App() {
   const [activePage, setActivePage] = useState<AppRouteId>(DEFAULT_ROUTE);
+  const [campaigns, setCampaigns] = useState(() => MOCK_CAMPAIGNS);
+  const [activeCampaignId, setActiveCampaignId] = useState<string>(MOCK_CAMPAIGNS[0]?.id ?? '');
+  const [campaignDetailTab, setCampaignDetailTab] = useState<'overview' | 'flow'>('overview');
+
+  const activeCampaign = useMemo(() => {
+    return campaigns.find((c) => c.id === activeCampaignId) ?? campaigns[0];
+  }, [activeCampaignId, campaigns]);
 
   const renderPage = () => {
     switch (activePage) {
       case 'overview':
         return <Overview onNavigate={setActivePage} />;
-      case 'campaign-builder':
-        return <JourneyBuilder />;
+      case 'campaigns':
+        return (
+          <Campaigns
+            campaigns={campaigns}
+            setCampaigns={setCampaigns}
+            onOpenCampaign={(campaignId) => {
+              setActiveCampaignId(campaignId);
+              setCampaignDetailTab('overview');
+              setActivePage('campaign-detail');
+            }}
+            onOpenCampaignFlow={(campaignId) => {
+              setActiveCampaignId(campaignId);
+              setCampaignDetailTab('flow');
+              setActivePage('campaign-detail');
+            }}
+          />
+        );
+      case 'campaign-detail':
+        if (!activeCampaign)
+          return (
+            <Campaigns
+              campaigns={campaigns}
+              setCampaigns={setCampaigns}
+              onOpenCampaign={(campaignId) => {
+                setActiveCampaignId(campaignId);
+                setCampaignDetailTab('overview');
+                setActivePage('campaign-detail');
+              }}
+              onOpenCampaignFlow={(campaignId) => {
+                setActiveCampaignId(campaignId);
+                setCampaignDetailTab('flow');
+                setActivePage('campaign-detail');
+              }}
+            />
+          );
+        return (
+          <CampaignDetail
+            campaign={activeCampaign}
+            onBack={() => setActivePage('campaigns')}
+            onEditMeta={() => {
+              setActivePage('campaigns');
+            }}
+            initialTab={campaignDetailTab}
+          />
+        );
       case 'campaign-copilot':
         return <CampaignCopilot />;
       case 'analytics':
