@@ -16,12 +16,12 @@ interface SidebarProps {
 export default function Sidebar({ activePage, setActivePage }: SidebarProps) {
   return (
     <nav className="w-64 fixed left-0 top-0 h-full border-r border-inverse-surface bg-inverse-surface text-inverse-on-surface z-50 flex flex-col py-6">
-      <div className="px-6 mb-8 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-surface-container-lowest overflow-hidden border border-outline-variant/30 shadow-[0_0_15px_rgba(255,184,0,0.18)] grid place-items-center p-1">
-          <img src={logoUrl} alt="TokTok OR logo" className="w-full h-full object-contain" />
+      <div className="px-6 mb-8 flex items-center gap-4">
+        <div className="w-[5.25rem] h-[5.25rem] shrink-0 rounded-full bg-surface-container-lowest overflow-hidden border-[3px] border-white shadow-[0_0_22px_rgba(52,211,153,0.28),inset_0_0_0_1px_rgba(255,255,255,0.06)] grid place-items-center ring-1 ring-emerald-400/15">
+          <img src={logoUrl} alt="TokTok OR logo" className="w-full h-full object-contain rounded-full" />
         </div>
         <div>
-          <h1 className="text-xl font-extrabold tracking-tight text-primary-container leading-none">TokTok OR</h1>
+          <h1 className="text-xl font-extrabold tracking-tight text-primary-container leading-none">TokTok</h1>
           <p className="text-[10px] text-inverse-on-surface/50 font-medium mt-1 uppercase tracking-wider">Хэрэглэгчид Идэвхжүүлэх Хөтөч</p>
         </div>
       </div>
