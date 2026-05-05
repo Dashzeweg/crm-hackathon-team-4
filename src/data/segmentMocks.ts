@@ -1,5 +1,7 @@
 export type DeliveryStatus = 'draft' | 'reserved';
 export type MessageType = 'flex' | 'image' | 'empty' | 'message';
+/** Тарилтыг SMS, push мэдэгдэл, эсвэл апп доторх баннераар харуулах */
+export type DeliverySurface = 'sms' | 'notification' | 'banner';
 
 export interface SegmentDelivery {
   id: number;
@@ -9,8 +11,11 @@ export interface SegmentDelivery {
   schedule: string;
   message: string;
   messageType: MessageType;
+  surface: DeliverySurface;
   warn?: boolean;
 }
+
+const SURFACES: DeliverySurface[] = ['sms', 'notification', 'banner'];
 
 export interface SegmentSummary {
   name: string;
@@ -18,7 +23,7 @@ export interface SegmentSummary {
   updated: string;
 }
 
-export const MOCK_DELIVERIES: SegmentDelivery[] = [
+const MOCK_DELIVERIES_BASE: Omit<SegmentDelivery, 'surface'>[] = [
   { id: 1, status: 'draft', name: 'Тэст_хуулбар4_хуулбар1_hoge', segment: 'Сар_хуулбар1', schedule: '2026-04-23 18:11', message: 'Tencial Test_хуулбар1', messageType: 'flex' },
   { id: 2, status: 'draft', name: 'Тэст_хуулбар4', segment: 'Сар_хуулбар1', schedule: '2026-04-23 18:11', message: '—', messageType: 'empty' },
   { id: 3, status: 'draft', name: 'Тэст', segment: 'Сар_хуулбар1', schedule: '2026-04-23 18:11', message: '—', messageType: 'empty' },
@@ -38,6 +43,11 @@ export const MOCK_DELIVERIES: SegmentDelivery[] = [
   { id: 17, status: 'draft', name: 'Жишээ_үл_хөдлөх (Step_тарилт + 2 хоног)', segment: 'Хүлээгдэж_байгаа', schedule: 'Хүлээгдэж_байгаа', message: 'Жишээ_үл_хөдлөх (хайлтын зөвлөгөө)', messageType: 'message' },
   { id: 18, status: 'draft', name: 'Жишээ_үл_хөдлөх (хариу мессеж)', segment: 'Хүлээгдэж_байгаа', schedule: 'Хүлээгдэж_байгаа', message: 'Жишээ_үл_хөдлөх_тэст_сэдэв', messageType: 'message' },
 ];
+
+export const MOCK_DELIVERIES: SegmentDelivery[] = MOCK_DELIVERIES_BASE.map((row, i) => ({
+  ...row,
+  surface: SURFACES[i % SURFACES.length]!,
+}));
 
 export const MOCK_SEGMENTS: SegmentSummary[] = [
   { name: 'Том_тэст(91)', type: 'Filter', updated: '2026-04-26' },

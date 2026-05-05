@@ -22,11 +22,30 @@ import {
   Copy,
   Trash2,
   Smartphone,
+  Table2,
+  Columns2,
+  Bell,
+  PanelTop,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '@/src/lib/utils';
-import type { MessageType, SegmentDelivery } from '@/src/data/segmentMocks';
+import type { DeliverySurface, MessageType, SegmentDelivery } from '@/src/data/segmentMocks';
 import { MOCK_DELIVERIES } from '@/src/data/segmentMocks';
+import previewBanner from '@/src/assets/banner1.png';
+import previewNotif from '@/src/assets/notif1.png';
+import previewSms from '@/src/assets/sms2.png';
+
+const SURFACE_PREVIEW_IMG: Record<DeliverySurface, string> = {
+  sms: previewSms,
+  notification: previewNotif,
+  banner: previewBanner,
+};
+
+const SURFACE_PREVIEW_ALT: Record<DeliverySurface, string> = {
+  sms: 'SMS мессежийн жишээ (TokTok)',
+  notification: 'Push мэдэгдлийн жишээ (TokTok)',
+  banner: 'Апп доторх баннерын жишээ (TokTok)',
+};
 
 type TabKey = 'all' | 'scheduled' | 'draft';
 type LayoutVariant = 'default' | 'cards' | 'split';
@@ -54,6 +73,28 @@ function MessageTypeIcon({ type }: { type: MessageType }) {
   if (type === 'image') return <Image className={cls} />;
   if (type === 'empty') return <Settings className={cls} />;
   return <MessageSquare className={cls} />;
+}
+
+function SurfaceBadge({ surface }: { surface: DeliverySurface }) {
+  const styles =
+    surface === 'sms'
+      ? 'border-sky-600/35 bg-sky-500/12 text-sky-950'
+      : surface === 'notification'
+        ? 'border-violet-600/35 bg-violet-500/12 text-violet-950'
+        : 'border-amber-700/40 bg-amber-500/15 text-amber-950';
+  const Icon = surface === 'sms' ? Smartphone : surface === 'notification' ? Bell : PanelTop;
+  const label = surface === 'sms' ? 'SMS' : surface === 'notification' ? 'Мэдэгдэл' : 'Баннер';
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tight border',
+        styles
+      )}
+    >
+      <Icon className="w-3 h-3 shrink-0" aria-hidden />
+      {label}
+    </span>
+  );
 }
 
 function Pagination() {
@@ -89,59 +130,21 @@ function Pagination() {
   );
 }
 
-function PhonePreview({ variant }: { variant: MessageType }) {
+function DeliveryPreview({ surface }: { surface: DeliverySurface; variant: MessageType }) {
+  const bezel =
+    'w-[min(240px,85vw)] max-w-[260px] shrink-0 rounded-[2rem] border-4 border-outline-variant bg-on-surface p-2  shadow-inner';
+  const inner =
+    'rounded-[1.5rem] bg-surface-container-lowest overflow-hidden border border-outline-variant/30 flex items-start justify-center min-h-[280px] max-h-[min(520px,70vh)]';
+
   return (
-    <div className="w-[200px] shrink-0 rounded-[2rem] border-4 border-outline-variant bg-on-surface p-2 shadow-inner">
-      <div className="rounded-[1.5rem] bg-surface-container-lowest overflow-hidden border border-outline-variant/30">
-        <div className="flex justify-between items-center px-3 py-1.5 text-[9px] font-black text-on-surface border-b border-outline-variant/20">
-          <span>9:41</span>
-          <span className="opacity-40">● ▴ ▮</span>
-        </div>
-        <div className="flex gap-2 px-3 py-2 border-b border-outline-variant/15">
-          <div className="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-[10px] font-black text-on-primary-container">
-            T
-          </div>
-          <div>
-            <div className="text-[10px] font-black text-on-surface">TokTok Хөтөч</div>
-            <div className="text-[8px] text-on-surface-variant font-bold">албан ёсны акаунт</div>
-          </div>
-        </div>
-        <div className="p-2 space-y-2 min-h-[200px] flex flex-col">
-          {variant === 'flex' && (
-            <div className="rounded-xl overflow-hidden border border-outline-variant/30 text-[9px] font-bold text-on-surface self-start max-w-[92%]">
-              <div className="bg-primary-container/25 px-2 py-2 leading-tight">
-                Хаврын <span className="text-primary">50 хүний</span>
-                <br />
-                <span className="text-[8px]">тусгай тэмдэглэл</span>
-              </div>
-              <div className="px-2 py-2 bg-surface text-[8px]">
-                Зөв хариулсан <strong>50 хүнд</strong> манай шинэ бүтээгдэхүүний бэлэг!
-              </div>
-            </div>
-          )}
-          {variant === 'image' && (
-            <div className="rounded-xl overflow-hidden border border-outline-variant/30 self-start max-w-[92%]">
-              <div className="h-20 bg-[repeating-linear-gradient(45deg,#f0e8dc_0_6px,#e8dcc8_6px_7px)] flex items-center justify-center text-[8px] text-on-surface-variant font-black">
-                ЗУРАГ ОРНО
-              </div>
-              <div className="px-2 py-1.5 text-[8px] font-bold">Шинэ бүтээгдэхүүний урьдчилсан санал</div>
-            </div>
-          )}
-          {variant === 'message' && (
-            <div className="rounded-xl bg-surface-container px-2 py-2 text-[9px] font-bold text-on-surface self-start max-w-[92%] leading-snug">
-              <div className="mb-1">Сайн байна уу!</div>
-              Энэ долоо хоногт онцгой санал бэлдлээ.
-            </div>
-          )}
-          {variant === 'empty' && (
-            <div className="rounded-xl bg-surface-container px-2 py-2 text-[9px] text-on-surface-variant italic self-start">
-              Мессеж сонгогдоогүй байна
-            </div>
-          )}
-          <div className="mt-auto rounded-xl bg-green-700/15 text-green-900 px-2 py-1.5 text-[9px] font-bold self-end max-w-[80%]">
-            Сонирхолтой!
-          </div>
-        </div>
+    <div className={bezel}>
+      <div className={inner}>
+        <img
+          src={SURFACE_PREVIEW_IMG[surface]}
+          alt={SURFACE_PREVIEW_ALT[surface]}
+          className="w-full h-auto max-h-[min(500px,68vh)] object-cover object-top select-none"
+          draggable={false}
+        />
       </div>
     </div>
   );
@@ -229,6 +232,8 @@ function DeliveryDetailModal({
             <div className="grid grid-cols-[minmax(0,140px)_1fr] gap-x-6 gap-y-4 text-sm">
               <span className="font-black text-outline text-[10px] uppercase tracking-wider pt-1">Төлөв</span>
               <StatusBadge status={delivery.status} />
+              <span className="font-black text-outline text-[10px] uppercase tracking-wider pt-1">Суваг</span>
+              <SurfaceBadge surface={delivery.surface} />
               <span className="font-black text-outline text-[10px] uppercase tracking-wider pt-1">Тарилтын нэр</span>
               <span className="font-extrabold text-on-surface break-words">{delivery.name}</span>
               <span className="font-black text-outline text-[10px] uppercase tracking-wider pt-1">Сегмент</span>
@@ -266,13 +271,16 @@ function DeliveryDetailModal({
             </button>
           </div>
         </div>
-        <div className="hidden md:flex w-[240px] shrink-0 border-l border-outline-variant/20 bg-surface-container-low flex-col">
-          <div className="px-4 py-3 border-b border-outline-variant/15 flex items-center gap-2 text-[10px] font-black uppercase text-on-surface-variant">
-            <Smartphone className="w-4 h-4" />
-            Урьдчилсан харагдац
+        <div className="hidden md:flex w-[270px] shrink-0 border-l border-outline-variant/20 bg-surface-container-low flex-col">
+          <div className="px-4 py-3 border-b border-outline-variant/15 flex flex-col gap-2 text-[10px] font-black uppercase text-on-surface-variant">
+            <div className="flex items-center gap-2">
+              <Smartphone className="w-4 h-4 shrink-0" />
+              Урьдчилсан харагдац
+            </div>
+            <SurfaceBadge surface={delivery.surface} />
           </div>
-          <div className="flex-1 flex items-center justify-center p-4">
-            <PhonePreview variant={delivery.messageType} />
+          <div className="flex-1 flex items-center justify-center py-4 px-2 overflow-hidden">
+            <DeliveryPreview surface={delivery.surface} variant={delivery.messageType} />
           </div>
         </div>
       </motion.div>
@@ -506,29 +514,41 @@ export default function SegmentDeliveries() {
           <Search className="w-4 h-4" />
           Хайх
         </button>
-        <div className="flex items-center gap-2 ml-auto">
-          <span className="text-[10px] font-black text-outline uppercase hidden sm:inline">Харагдах</span>
-          {(
-            [
-              { key: 'default' as const, label: 'Хүснэгт' },
-              { key: 'cards' as const, label: 'Карт' },
-              { key: 'split' as const, label: 'Хуваалт' },
-            ] as const
-          ).map(({ key, label }) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setLayout(key)}
-              className={cn(
-                'px-3 py-1.5 rounded-xl text-[10px] font-black uppercase border-2',
-                layout === key
-                  ? 'border-primary-container bg-primary-container/10 text-primary'
-                  : 'border-transparent text-on-surface-variant hover:bg-surface-container-lowest'
-              )}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="flex flex-col gap-2 w-full sm:w-auto sm:ml-auto sm:items-end">
+          <span className="text-[10px] font-black text-outline uppercase tracking-wide">
+            Харагдах{' '}
+            <span className="text-on-surface-variant font-bold opacity-80 normal-case tracking-normal">· 3 төрөл</span>
+          </span>
+          <div
+            role="tablist"
+            aria-label="Тарилтын харагдах — гурван төрөл"
+            className="flex w-full min-w-0 rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest p-1 gap-0.5 sm:inline-flex sm:w-auto"
+          >
+            {(
+              [
+                { key: 'default' as const, label: 'Хүснэгт', Icon: Table2 },
+                { key: 'cards' as const, label: 'Карт', Icon: LayoutGrid },
+                { key: 'split' as const, label: 'Хуваалт', Icon: Columns2 },
+              ] as const
+            ).map(({ key, label, Icon }) => (
+              <button
+                key={key}
+                type="button"
+                role="tab"
+                aria-selected={layout === key}
+                onClick={() => setLayout(key)}
+                className={cn(
+                  'flex flex-1 sm:flex-initial items-center justify-center gap-1.5 min-w-0 px-2 sm:px-3 py-2 rounded-xl text-[10px] font-black uppercase transition-all',
+                  layout === key
+                    ? 'bg-primary-container text-on-primary-container shadow-sm border-2 border-outline-variant/20'
+                    : 'text-on-surface-variant hover:bg-surface-container-low border-2 border-transparent'
+                )}
+              >
+                <Icon className="w-4 h-4 shrink-0" aria-hidden />
+                <span className="truncate">{label}</span>
+              </button>
+            ))}
+          </div>
         </div>
         <span className="text-[10px] font-black text-outline uppercase whitespace-nowrap">
           Мөр{' '}
@@ -554,8 +574,11 @@ export default function SegmentDeliveries() {
               onClick={() => setSelected(d)}
               className="text-left rounded-2xl border-2 border-outline-variant/25 bg-surface-container-lowest p-5 hover:border-primary-container/35 transition-all border-b-[4px] shadow-sm"
             >
-              <div className="flex justify-between items-start mb-3">
-                <StatusBadge status={d.status} />
+              <div className="flex justify-between items-start mb-3 gap-2 flex-wrap">
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge status={d.status} />
+                  <SurfaceBadge surface={d.surface} />
+                </div>
                 <span className="text-[10px] font-mono text-on-surface-variant">#{d.id.toString().padStart(4, '0')}</span>
               </div>
               <p className="font-extrabold text-on-surface text-sm mb-3 leading-snug">{d.name}</p>
@@ -610,6 +633,7 @@ export default function SegmentDeliveries() {
                         <span className="font-mono text-[10px] text-on-surface-variant shrink-0">{d.schedule}</span>
                       </div>
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-bold text-on-surface-variant">
+                        <SurfaceBadge surface={d.surface} />
                         <GitMerge className="w-3.5 h-3.5" />
                         <span className="truncate">{d.segment}</span>
                         <span className="text-outline">·</span>
@@ -626,10 +650,11 @@ export default function SegmentDeliveries() {
       ) : (
         <div className="bg-surface-container-lowest rounded-[2rem] shadow-xl border border-outline-variant/30 overflow-hidden border-b-[6px]">
           <div className="w-full overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[900px]">
+            <table className="w-full text-left border-collapse min-w-[1040px]">
               <thead>
                 <tr className="bg-surface/50 border-b border-outline-variant/20">
                   <th className="py-5 px-6 text-[10px] font-black text-outline uppercase tracking-[0.2em] w-32">Төлөв</th>
+                  <th className="py-5 px-6 text-[10px] font-black text-outline uppercase tracking-[0.2em] w-36">Суваг</th>
                   <th className="py-5 px-6 text-[10px] font-black text-outline uppercase tracking-[0.2em]">Тарилтын нэр</th>
                   <th className="py-5 px-6 text-[10px] font-black text-outline uppercase tracking-[0.2em] min-w-[200px]">
                     Сегмент / Хуваарь
@@ -647,6 +672,9 @@ export default function SegmentDeliveries() {
                   >
                     <td className="py-4 px-6 align-top">
                       <StatusBadge status={d.status} />
+                    </td>
+                    <td className="py-4 px-6 align-top">
+                      <SurfaceBadge surface={d.surface} />
                     </td>
                     <td className="py-4 px-6 align-top font-extrabold tracking-tight max-w-[220px]">{d.name}</td>
                     <td className="py-4 px-6 align-top">
