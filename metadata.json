@@ -1,0 +1,10 @@
+{
+  "name": "TokTok Хөтөч",
+  "description": "AI-powered customer retention platform featuring journey building, campaign suggestions, and deep analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "Journey Building",
+    "AI Campaign Suggestions",
+    "Performance Analytics"
+  ]
+}

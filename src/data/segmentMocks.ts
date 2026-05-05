@@ -1,16 +1,35 @@
-/* Sample Mongolian campaign data */
-const DELIVERIES = [
+export type DeliveryStatus = 'draft' | 'reserved';
+export type MessageType = 'flex' | 'image' | 'empty' | 'message';
+
+export interface SegmentDelivery {
+  id: number;
+  status: DeliveryStatus;
+  name: string;
+  segment: string;
+  schedule: string;
+  message: string;
+  messageType: MessageType;
+  warn?: boolean;
+}
+
+export interface SegmentSummary {
+  name: string;
+  type: string;
+  updated: string;
+}
+
+export const MOCK_DELIVERIES: SegmentDelivery[] = [
   { id: 1, status: 'draft', name: 'Тэст_хуулбар4_хуулбар1_hoge', segment: 'Сар_хуулбар1', schedule: '2026-04-23 18:11', message: 'Tencial Test_хуулбар1', messageType: 'flex' },
   { id: 2, status: 'draft', name: 'Тэст_хуулбар4', segment: 'Сар_хуулбар1', schedule: '2026-04-23 18:11', message: '—', messageType: 'empty' },
   { id: 3, status: 'draft', name: 'Тэст', segment: 'Сар_хуулбар1', schedule: '2026-04-23 18:11', message: '—', messageType: 'empty' },
   { id: 4, status: 'reserved', name: 'Том_тэст_3', segment: 'Тохируулагдаагүй', schedule: 'Тэст', message: 'Том_тэст_1', messageType: 'image' },
   { id: 5, status: 'reserved', name: 'Том_тэст_2', segment: 'Том_тэст(91)', schedule: '2026-03-25 19:15', message: 'Том_тэст_2', messageType: 'image' },
   { id: 6, status: 'draft', name: 'тэст_хаврын_шинэ_үйлчлүүлэгчдийн_кампанит_ажил', segment: 'Тэст_тарилгын_180_хоногийн_дотор', schedule: '2026-03-20 14:47', message: 'Тэст_Flex_мессеж (хаврын шинэ хэрэглэгчид)', messageType: 'flex' },
-  { id: 7, status: 'draft', name: 'Тэст_сегментлэлт', segment: 'Тэст_5%_цахим_сэдэлжүүлэлт_2', schedule: 'Тэст_дэлгэрэнгүй_18 цаг', message: 'Тэст_5_сарын_5_оноо +5 \u26A0', messageType: 'message', warn: true },
+  { id: 7, status: 'draft', name: 'Тэст_сегментлэлт', segment: 'Тэст_5%_цахим_сэдэлжүүлэлт_2', schedule: 'Тэст_дэлгэрэнгүй_18 цаг', message: 'Тэст_5_сарын_5_оноо +5', messageType: 'message', warn: true },
   { id: 8, status: 'draft', name: 'Сэлэнгэ_тэст (анкет асуулга)', segment: 'Тэст', schedule: 'Хүлээгдэж_байгаа_тохиргоо', message: 'Косметик_санал_тэст_хуулбар1_хуулбар1', messageType: 'flex' },
   { id: 9, status: 'draft', name: 'Хувийн_тэст', segment: 'Хүлээгдэж_байгаа_тохиргоо', schedule: 'Хүлээгдэж_байгаа_тохиргоо', message: 'Параметр_тэст / Лакко', messageType: 'message' },
   { id: 10, status: 'reserved', name: 'Том_тэст_1', segment: 'Том_тэст(91)', schedule: '2026-03-23 19:15', message: 'Том_тэст_1', messageType: 'message' },
-  { id: 11, status: 'reserved', name: 'А_ж_ү_к', segment: 'Сонирхлынхоо_бүртгэл', schedule: '2026-02-25 18:07', message: 'Кампанит_шинэ_санал \u26A0', messageType: 'message', warn: true },
+  { id: 11, status: 'reserved', name: 'А_ж_ү_к', segment: 'Сонирхлынхоо_бүртгэл', schedule: '2026-02-25 18:07', message: 'Кампанит_шинэ_санал', messageType: 'message', warn: true },
   { id: 12, status: 'reserved', name: 'тэст', segment: 'Шинэ_тэст', schedule: '2026-03-03 17:30', message: 'Купон_шинэчлэлт', messageType: 'message' },
   { id: 13, status: 'draft', name: 'Тэст_Отта', segment: 'Сегмент', schedule: '2026-02-13 12:00', message: 'Тэст ⚠', messageType: 'message', warn: true },
   { id: 14, status: 'draft', name: 'Жишээ_1234', segment: 'Хүлээгдэж_байгаа', schedule: 'Хүлээгдэж_байгаа', message: 'Сонголт_мессеж_хуулбар1', messageType: 'message' },
@@ -20,7 +39,7 @@ const DELIVERIES = [
   { id: 18, status: 'draft', name: 'Жишээ_үл_хөдлөх (хариу мессеж)', segment: 'Хүлээгдэж_байгаа', schedule: 'Хүлээгдэж_байгаа', message: 'Жишээ_үл_хөдлөх_тэст_сэдэв', messageType: 'message' },
 ];
 
-const SEGMENTS = [
+export const MOCK_SEGMENTS: SegmentSummary[] = [
   { name: 'Том_тэст(91)', type: 'Filter', updated: '2026-04-26' },
   { name: 'Унтсан_хэрэглэгч', type: 'Filter', updated: '2026-04-22' },
   { name: 'Сэдэлжүүлэлт_Class2', type: 'Filter', updated: '2026-04-15' },
@@ -37,7 +56,7 @@ const SEGMENTS = [
   { name: 'Найзын_бүртгэлийн_3_хоног', type: 'Filter', updated: '2026-03-05' },
 ];
 
-const FILTERS = [
+export const MOCK_FILTER_PALETTE = [
   'OJIMA_iOS',
   'Унтсан_хэрэглэгч',
   'Сэдэлжүүлэлт_Class2',
@@ -51,7 +70,3 @@ const FILTERS = [
   '54',
   'Шинэ-Дамба_UID',
 ];
-
-window.DELIVERIES = DELIVERIES;
-window.SEGMENTS = SEGMENTS;
-window.FILTERS = FILTERS;
