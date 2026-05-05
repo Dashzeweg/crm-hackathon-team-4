@@ -59,10 +59,10 @@ export const NAV_SECTIONS: readonly NavSection[] = [
   },
   {
     title: 'Компанит ажил (юу хийх вэ)',
-    hint: 'Зөвлөмж аваад урсгал бүтээх — олон алхамт автоматжуулалт.',
+    hint: 'Зөвлөмж аваад урсгал бүтээх - олон алхамт автоматжуулалт.',
     items: [
       { id: 'campaigns', label: 'Кампанит ажлууд', icon: Megaphone },
-      { id: 'campaign-copilot', label: 'Зөвлөмжийн туслах', icon: Sparkles },
+      { id: 'campaign-copilot', label: 'AI туслах', icon: Sparkles },
     ],
   },
 ] as const;
@@ -83,7 +83,7 @@ const ROUTE_LABELS: Record<AppRouteId, string> = {
   'segment-deliveries': 'Сегментийн түгээлт',
   campaigns: 'Кампанит ажлууд',
   'campaign-detail': 'Кампанит ажил',
-  'campaign-copilot': 'Зөвлөмжийн туслах',
+  'campaign-copilot': 'AI туслах',
   settings: 'Тохиргоо',
   help: 'Тусламж',
 };
