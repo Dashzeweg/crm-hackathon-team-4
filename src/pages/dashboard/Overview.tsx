@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, Split, Send, Sparkles, Workflow, TrendingUp } from 'lucide-react';
+import { ArrowRight, Split, Send, Sparkles, Megaphone, TrendingUp } from 'lucide-react';
 import { motion } from 'motion/react';
 import type { AppRouteId } from '@/src/navigation/routes';
 import { NAV_SECTIONS } from '@/src/navigation/routes';
@@ -20,10 +20,10 @@ const quickSteps: {
   },
   {
     title: '2. Мессеж хэзээ очих вэ?',
-    body: 'Сегмент сонгож, нэг удаагийн эсвэл хуваарьт тарилт үүсгэнэ.',
+    body: 'Сегмент сонгож, нэг удаагийн эсвэл хуваарьт түгээлт үүсгэнэ.',
     icon: Send,
     route: 'segment-deliveries',
-    cta: 'Тарилт руу',
+    cta: 'Түгээлт руу',
   },
   {
     title: '3. Юу илгээх, яаж автоматжуулах вэ?',
@@ -91,11 +91,11 @@ export default function Overview({ onNavigate }: { onNavigate: (id: AppRouteId) 
           </div>
           <button
             type="button"
-            onClick={() => onNavigate('campaign-builder')}
+            onClick={() => onNavigate('campaigns')}
             className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-primary-container text-on-primary-container font-black text-xs uppercase shadow-[3px_3px_0px_#6b4c00]"
           >
-            <Workflow className="w-4 h-4" />
-            Шууд урсгалын бүтээгч нээх
+            <Megaphone className="w-4 h-4" />
+            Кампанит ажил сонгох
           </button>
         </div>
 
