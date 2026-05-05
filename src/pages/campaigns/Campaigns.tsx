@@ -469,7 +469,7 @@ export default function Campaigns({
             segment: draft.segment,
             objective: draft.objective,
             updatedAt: today(),
-            owner: 'Munkhuush',
+            owner: 'Gomboo',
             steps: 3,
           };
           setRows((prev) => [row, ...prev]);
@@ -510,7 +510,7 @@ export default function Campaigns({
             segment: defaultDraft.segment,
             objective: '— зорилго бөглөнө —',
             updatedAt: today(),
-            owner: 'Munkhuush',
+            owner: 'Gomboo',
             steps: 1,
           };
           setRows((prev) => [row, ...prev]);

@@ -50,7 +50,7 @@ export default function TopNav({ activeRouteId }: { activeRouteId: string }) {
         </button>
         <div className="flex items-center gap-3 ml-2 pl-4 border-l border-outline-variant">
           <div className="text-right">
-            <p className="text-sm font-bold text-on-surface leading-none">Munkhuush</p>
+            <p className="text-sm font-bold text-on-surface leading-none">Gomboo</p>
             <p className="text-[10px] font-medium text-on-surface-variant/60">Admin</p>
           </div>
           <div className="w-9 h-9 rounded-full bg-surface-container overflow-hidden border-2 border-outline-variant shadow-sm cursor-pointer hover:border-primary-container transition-all">

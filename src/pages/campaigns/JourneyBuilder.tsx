@@ -21,14 +21,29 @@ import {
   X
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import banner1 from '@/src/assets/banner1.png';
+import notif1 from '@/src/assets/notif1.png';
+import sms2 from '@/src/assets/sms2.png';
 
 type PaletteItemType = 'trigger' | 'condition' | 'action';
+
+type ActionType = 'send_email' | 'send_sms' | 'send_push' | 'edit_html' | 'wait' | 'image';
+
+type ActionConfig =
+  | { kind: 'send_email'; subject: string; body: string }
+  | { kind: 'send_sms'; message: string }
+  | { kind: 'send_push'; title: string; message: string }
+  | { kind: 'edit_html'; html: string }
+  | { kind: 'wait'; days: number }
+  | { kind: 'image'; src: string; alt?: string };
 
 type JourneyNode = {
   id: string;
   type: PaletteItemType;
   title: string;
   subtitle?: string;
+  actionType?: ActionType;
+  actionConfig?: ActionConfig;
   x: number;
   y: number;
 };
@@ -39,6 +54,11 @@ type JourneyEdge = {
   to: string;
 };
 
+type DragNodePayload =
+  | { type: 'trigger' }
+  | { type: 'condition' }
+  | { type: 'action'; actionType: ActionType };
+
 function NodeEditModal({
   open,
   initial,
@@ -46,29 +66,85 @@ function NodeEditModal({
   onSave,
 }: {
   open: boolean;
-  initial: { title: string; subtitle?: string; type: PaletteItemType } | null;
+  initial:
+    | { title: string; subtitle?: string; type: PaletteItemType; actionType?: ActionType; actionConfig?: ActionConfig }
+    | null;
   onClose: () => void;
-  onSave: (next: { title: string; subtitle?: string; type: PaletteItemType }) => void;
+  onSave: (next: { title: string; subtitle?: string; type: PaletteItemType; actionType?: ActionType; actionConfig?: ActionConfig }) => void;
 }) {
+  const imageOptions = useMemo(
+    () => [
+      { label: 'Banner', src: banner1 },
+      { label: 'Notification', src: notif1 },
+      { label: 'SMS', src: sms2 },
+    ],
+    []
+  );
+
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [type, setType] = useState<PaletteItemType>('trigger');
+  const [actionType, setActionType] = useState<ActionType>('send_push');
+
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailBody, setEmailBody] = useState('');
+  const [smsMessage, setSmsMessage] = useState('');
+  const [pushTitle, setPushTitle] = useState('');
+  const [pushMessage, setPushMessage] = useState('');
+  const [html, setHtml] = useState('');
+  const [waitDays, setWaitDays] = useState(1);
+  const [imageSrc, setImageSrc] = useState(imageOptions[0]?.src ?? '');
+  const [imageAlt, setImageAlt] = useState('');
 
   useEffect(() => {
     if (!open || !initial) return;
     setTitle(initial.title ?? '');
     setSubtitle(initial.subtitle ?? '');
     setType(initial.type);
-  }, [open, initial]);
+    setActionType(initial.actionType ?? 'send_push');
+
+    const cfg = initial.actionConfig;
+    if (cfg?.kind === 'send_email') {
+      setEmailSubject(cfg.subject ?? '');
+      setEmailBody(cfg.body ?? '');
+    } else if (cfg?.kind === 'send_sms') {
+      setSmsMessage(cfg.message ?? '');
+    } else if (cfg?.kind === 'send_push') {
+      setPushTitle(cfg.title ?? '');
+      setPushMessage(cfg.message ?? '');
+    } else if (cfg?.kind === 'edit_html') {
+      setHtml(cfg.html ?? '');
+    } else if (cfg?.kind === 'wait') {
+      setWaitDays(Number.isFinite(cfg.days) ? cfg.days : 1);
+    } else if (cfg?.kind === 'image') {
+      setImageSrc(cfg.src ?? (imageOptions[0]?.src ?? ''));
+      setImageAlt(cfg.alt ?? '');
+    }
+  }, [open, initial, imageOptions]);
 
   if (!open || !initial) return null;
 
   const canSave = title.trim().length > 0;
 
+  const currentActionConfig: ActionConfig | undefined =
+    type !== 'action'
+      ? undefined
+      : actionType === 'send_email'
+        ? { kind: 'send_email', subject: emailSubject, body: emailBody }
+        : actionType === 'send_sms'
+          ? { kind: 'send_sms', message: smsMessage }
+          : actionType === 'send_push'
+            ? { kind: 'send_push', title: pushTitle, message: pushMessage }
+            : actionType === 'edit_html'
+              ? { kind: 'edit_html', html }
+              : actionType === 'image'
+                ? { kind: 'image', src: imageSrc, alt: imageAlt.trim() || undefined }
+                : { kind: 'wait', days: waitDays };
+
   return (
     <div className="fixed inset-0 z-210 flex items-center justify-center bg-black/45 p-4" role="presentation" onClick={onClose}>
       <div
-        className="w-full max-w-lg rounded-[1.75rem] border-2 border-outline-variant/30 bg-surface-container-lowest shadow-2xl border-b-[6px] overflow-hidden"
+        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[1.75rem] border-2 border-outline-variant/30 bg-surface-container-lowest shadow-2xl border-b-[6px] custom-scrollbar"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-7 py-5 border-b border-outline-variant/20">
@@ -90,13 +166,48 @@ function NodeEditModal({
           <label className="block">
             <span className="text-[10px] font-black text-outline uppercase tracking-wider">Төрөл</span>
             <select
-              value={type}
-              onChange={(e) => setType(e.target.value as PaletteItemType)}
+              value={
+                type !== 'action'
+                  ? type
+                  : actionType === 'send_email'
+                    ? 'action:send_email'
+                    : actionType === 'send_sms'
+                      ? 'action:send_sms'
+                      : actionType === 'send_push'
+                        ? 'action:send_push'
+                        : actionType === 'edit_html'
+                          ? 'action:edit_html'
+                          : actionType === 'image'
+                            ? 'action:image'
+                            : actionType === 'wait'
+                              ? 'action:wait'
+                              : 'action'
+              }
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v === 'trigger' || v === 'condition') {
+                  setType(v);
+                  return;
+                }
+                // action variants
+                setType('action');
+                if (v === 'action:send_email') setActionType('send_email');
+                else if (v === 'action:send_sms') setActionType('send_sms');
+                else if (v === 'action:send_push') setActionType('send_push');
+                else if (v === 'action:edit_html') setActionType('edit_html');
+                else if (v === 'action:image') setActionType('image');
+                else if (v === 'action:wait') setActionType('wait');
+              }}
               className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold outline-none focus:border-primary-container border-b-4"
             >
               <option value="trigger">Өдөөгч</option>
               <option value="condition">Нөхцөл</option>
-              <option value="action">Үйлдэл</option>
+              <option value="action:send_email">Үйлдэл · Email</option>
+              <option value="action:send_sms">Үйлдэл · SMS</option>
+              <option value="action:send_push">Үйлдэл · Push</option>
+              <option value="action:edit_html">Үйлдэл · HTML засах</option>
+              <option value="action:image">Үйлдэл · Зураг</option>
+              <option value="action:wait">Үйлдэл · Хүлээх</option>
             </select>
           </label>
 
@@ -123,6 +234,142 @@ function NodeEditModal({
             />
           </label>
 
+          {type === 'action' && actionType === 'send_email' ? (
+            <div className="space-y-4">
+              <label className="block">
+                <span className="text-[10px] font-black text-outline uppercase tracking-wider">Гарчиг (Subject)</span>
+                <input
+                  value={emailSubject}
+                  onChange={(e) => setEmailSubject(e.target.value)}
+                  className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold outline-none focus:border-primary-container border-b-4"
+                  placeholder="Ж: Тавтай морил!"
+                />
+              </label>
+              <label className="block">
+                <span className="text-[10px] font-black text-outline uppercase tracking-wider">Email body</span>
+                <textarea
+                  value={emailBody}
+                  onChange={(e) => setEmailBody(e.target.value)}
+                  rows={5}
+                  className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold outline-none focus:border-primary-container border-b-4 resize-none font-mono"
+                  placeholder="Сайн байна уу..."
+                />
+              </label>
+            </div>
+          ) : null}
+
+          {type === 'action' && actionType === 'send_sms' ? (
+            <label className="block">
+              <span className="text-[10px] font-black text-outline uppercase tracking-wider">SMS мессеж</span>
+              <textarea
+                value={smsMessage}
+                onChange={(e) => setSmsMessage(e.target.value)}
+                rows={4}
+                className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold outline-none focus:border-primary-container border-b-4 resize-none"
+                placeholder="Ж: Та өнөөдөр 15% хөнгөлөлттэй!"
+              />
+            </label>
+          ) : null}
+
+          {type === 'action' && actionType === 'send_push' ? (
+            <div className="space-y-4">
+              <label className="block">
+                <span className="text-[10px] font-black text-outline uppercase tracking-wider">Push title</span>
+                <input
+                  value={pushTitle}
+                  onChange={(e) => setPushTitle(e.target.value)}
+                  className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold outline-none focus:border-primary-container border-b-4"
+                  placeholder='Ж: "Оройн хоол"'
+                />
+              </label>
+              <label className="block">
+                <span className="text-[10px] font-black text-outline uppercase tracking-wider">Push message</span>
+                <textarea
+                  value={pushMessage}
+                  onChange={(e) => setPushMessage(e.target.value)}
+                  rows={4}
+                  className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold outline-none focus:border-primary-container border-b-4 resize-none"
+                  placeholder="Ж: Өчигдрийн анхны захиалга..."
+                />
+              </label>
+            </div>
+          ) : null}
+
+          {type === 'action' && actionType === 'edit_html' ? (
+            <div className="space-y-4">
+              <label className="block">
+                <span className="text-[10px] font-black text-outline uppercase tracking-wider">HTML</span>
+                <textarea
+                  value={html}
+                  onChange={(e) => setHtml(e.target.value)}
+                  rows={6}
+                  className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold outline-none focus:border-primary-container border-b-4 resize-none font-mono"
+                  placeholder={'<div style="font-family:Inter"><h1>Hi</h1></div>'}
+                />
+              </label>
+              <div className="rounded-2xl border border-outline-variant/30 bg-surface-container-lowest overflow-hidden">
+                <div className="px-4 py-2 border-b border-outline-variant/20 bg-surface text-[10px] font-black text-outline uppercase tracking-[0.2em]">
+                  Preview
+                </div>
+                <div
+                  className="p-4 text-sm"
+                  dangerouslySetInnerHTML={{ __html: html || '<div class="opacity-60">— empty —</div>' }}
+                />
+              </div>
+            </div>
+          ) : null}
+
+          {type === 'action' && actionType === 'wait' ? (
+            <label className="block">
+              <span className="text-[10px] font-black text-outline uppercase tracking-wider">Хүлээх хоног</span>
+              <input
+                type="number"
+                min={0}
+                value={waitDays}
+                onChange={(e) => setWaitDays(Math.max(0, Number(e.target.value)))}
+                className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold outline-none focus:border-primary-container border-b-4"
+              />
+            </label>
+          ) : null}
+
+          {type === 'action' && actionType === 'image' ? (
+            <div className="space-y-4">
+              <label className="block">
+                <span className="text-[10px] font-black text-outline uppercase tracking-wider">Зураг сонгох</span>
+                <select
+                  value={imageSrc}
+                  onChange={(e) => setImageSrc(e.target.value)}
+                  className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold outline-none focus:border-primary-container border-b-4"
+                >
+                  {imageOptions.map((opt) => (
+                    <option key={opt.src} value={opt.src}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="block">
+                <span className="text-[10px] font-black text-outline uppercase tracking-wider">Alt text (optional)</span>
+                <input
+                  value={imageAlt}
+                  onChange={(e) => setImageAlt(e.target.value)}
+                  className="mt-2 w-full rounded-2xl border-2 border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm font-bold outline-none focus:border-primary-container border-b-4"
+                  placeholder="Ж: Logo"
+                />
+              </label>
+
+              <div className="rounded-2xl border border-outline-variant/30 bg-surface-container-lowest overflow-hidden">
+                <div className="px-4 py-2 border-b border-outline-variant/20 bg-surface text-[10px] font-black text-outline uppercase tracking-[0.2em]">
+                  Preview
+                </div>
+                <div className="p-4">
+                  <img src={imageSrc} alt={imageAlt || 'Selected image'} className="w-full h-40 object-cover rounded-xl border border-outline-variant/20" />
+                </div>
+              </div>
+            </div>
+          ) : null}
+
           <div className="flex items-start gap-2 rounded-2xl border border-outline-variant/25 bg-surface p-4">
             <AlertTriangle className="w-5 h-5 text-outline shrink-0 mt-0.5" />
             <div className="text-xs font-bold text-on-surface-variant/80 leading-snug">
@@ -140,7 +387,13 @@ function NodeEditModal({
             disabled={!canSave}
             onClick={() => {
               if (!canSave) return;
-              onSave({ title: title.trim(), subtitle: subtitle.trim() || undefined, type });
+              onSave({
+                title: title.trim(),
+                subtitle: subtitle.trim() || undefined,
+                type,
+                actionType: type === 'action' ? actionType : undefined,
+                actionConfig: currentActionConfig,
+              });
             }}
             className={
               canSave
@@ -222,6 +475,8 @@ export default function JourneyBuilder({
         type: 'action',
         title: 'Push Мэдэгдэл',
         subtitle: '"Өчигдрийн анхны захиалга" сануулга.',
+        actionType: 'send_push',
+        actionConfig: { kind: 'send_push', title: 'Оройн хоол', message: 'Өчигдрийн анхны захиалга — өнөөдөр үргэлжлүүлье.' },
         x: 520,
         y: 360,
       },
@@ -253,13 +508,14 @@ export default function JourneyBuilder({
     };
   }, [isFullscreen]);
 
-  const onPaletteDragStart = useCallback((e: React.DragEvent, t: PaletteItemType) => {
-    e.dataTransfer.setData('application/x-journey-node', t);
+  const onPaletteDragStart = useCallback((e: React.DragEvent, payload: DragNodePayload) => {
+    e.dataTransfer.setData('application/x-journey-node-v2', JSON.stringify(payload));
+    e.dataTransfer.setData('application/x-journey-node', payload.type);
     e.dataTransfer.effectAllowed = 'copy';
   }, []);
 
   const onCanvasDragOver = useCallback((e: React.DragEvent) => {
-    if (e.dataTransfer.types.includes('application/x-journey-node')) {
+    if (e.dataTransfer.types.includes('application/x-journey-node-v2') || e.dataTransfer.types.includes('application/x-journey-node')) {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'copy';
     }
@@ -267,7 +523,18 @@ export default function JourneyBuilder({
 
   const onCanvasDrop = useCallback(
     (e: React.DragEvent) => {
-      const t = e.dataTransfer.getData('application/x-journey-node') as PaletteItemType;
+      const v2 = e.dataTransfer.getData('application/x-journey-node-v2');
+      const payload: DragNodePayload | null = v2
+        ? (() => {
+            try {
+              return JSON.parse(v2) as DragNodePayload;
+            } catch {
+              return null;
+            }
+          })()
+        : null;
+
+      const t = (payload?.type ?? (e.dataTransfer.getData('application/x-journey-node') as PaletteItemType)) as PaletteItemType;
       if (!t) return;
       e.preventDefault();
       const viewport = viewportRef.current;
@@ -278,11 +545,26 @@ export default function JourneyBuilder({
       const localY = (e.clientY - rect.top + viewport.scrollTop) / zoom;
 
       const meta = paletteMeta(t);
+      const defaultActionType: ActionType = payload?.type === 'action' ? payload.actionType : 'send_push';
+      const defaultActionConfig = (at: ActionType): ActionConfig => {
+        if (at === 'send_email') return { kind: 'send_email', subject: 'Subject', body: 'Hello...' };
+        if (at === 'send_sms') return { kind: 'send_sms', message: 'SMS message' };
+        if (at === 'edit_html') return { kind: 'edit_html', html: '<div><h3>Hello</h3></div>' };
+        if (at === 'wait') return { kind: 'wait', days: 1 };
+        if (at === 'image') return { kind: 'image', src: banner1, alt: 'Banner' };
+        return { kind: 'send_push', title: 'Push title', message: 'Push message' };
+      };
       const next: JourneyNode = {
         id: randomId('node'),
         type: t,
         title: `${meta.label} (шинэ)`,
         subtitle: 'Drag to reposition',
+        ...(t === 'action'
+          ? {
+              actionType: defaultActionType,
+              actionConfig: defaultActionConfig(defaultActionType),
+            }
+          : null),
         x: localX - 160,
         y: localY - 40,
       };
@@ -300,18 +582,38 @@ export default function JourneyBuilder({
     setEdges((prev) => prev.filter((e) => e.id !== edgeId));
   }, []);
 
+  const actionTypeLabel = useCallback((t?: ActionType) => {
+    if (t === 'send_email') return 'Email';
+    if (t === 'send_sms') return 'SMS';
+    if (t === 'send_push') return 'Push';
+    if (t === 'edit_html') return 'HTML';
+    if (t === 'image') return 'Image';
+    if (t === 'wait') return 'Wait';
+    return 'Action';
+  }, []);
+
   const editInitial = useMemo(() => {
     if (!editNodeId) return null;
     const n = nodes.find((x) => x.id === editNodeId);
     if (!n) return null;
-    return { title: n.title, subtitle: n.subtitle, type: n.type } as const;
+    return { title: n.title, subtitle: n.subtitle, type: n.type, actionType: n.actionType, actionConfig: n.actionConfig } as const;
   }, [editNodeId, nodes]);
 
   const saveEdit = useCallback(
-    (next: { title: string; subtitle?: string; type: PaletteItemType }) => {
+    (next: { title: string; subtitle?: string; type: PaletteItemType; actionType?: ActionType; actionConfig?: ActionConfig }) => {
       const id = editNodeId;
       if (!id) return;
-      setNodes((prev) => prev.map((n) => (n.id === id ? { ...n, ...next } : n)));
+      setNodes((prev) =>
+        prev.map((n) =>
+          n.id === id
+            ? {
+                ...n,
+                ...next,
+                ...(next.type !== 'action' ? { actionType: undefined, actionConfig: undefined } : null),
+              }
+            : n
+        )
+      );
       setEditNodeId(null);
     },
     [editNodeId]
@@ -443,8 +745,8 @@ export default function JourneyBuilder({
         isFullscreen
           ? 'fixed inset-0 z-200 flex flex-col bg-background text-on-background'
           : variant === 'embedded'
-            ? 'flex flex-col h-full min-h-0'
-            : 'flex flex-col h-full animate-in fade-in duration-500'
+            ? 'flex flex-col h-full min-h-0 w-full max-w-full min-w-0 overflow-hidden'
+            : 'flex flex-col h-full w-full max-w-full min-w-0 overflow-hidden animate-in fade-in duration-500'
       }
     >
       <NodeEditModal open={!!editNodeId} initial={editInitial} onClose={() => setEditNodeId(null)} onSave={saveEdit} />
@@ -505,7 +807,7 @@ export default function JourneyBuilder({
               : 'mb-4'
         }
       >
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-2 flex flex-wrap gap-2 shadow-lg max-w-fit border-b-4">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-2 flex flex-wrap gap-2 shadow-lg w-full max-w-full min-w-0 overflow-x-auto border-b-4">
         <div className="flex items-center gap-1 pr-4 border-r border-outline-variant">
           <button className="w-9 h-9 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors cursor-grab">
             <Hand className="w-5 h-5" />
@@ -514,10 +816,10 @@ export default function JourneyBuilder({
             <MousePointer2 className="w-5 h-5 fill-current" />
           </button>
         </div>
-        <div className="flex items-center gap-2 px-4 border-r border-outline-variant">
+        <div className="flex items-center gap-2 px-4 border-r border-outline-variant flex-wrap min-w-0">
           <div
             draggable
-            onDragStart={(e) => onPaletteDragStart(e, 'trigger')}
+            onDragStart={(e) => onPaletteDragStart(e, { type: 'trigger' })}
             className="flex items-center gap-2 px-4 py-2 bg-surface-container rounded-xl cursor-grab hover:bg-surface-container-high transition-all border border-dashed border-outline-variant/60 active:cursor-grabbing"
             title="Canvas руу чирж тавина уу"
           >
@@ -526,7 +828,7 @@ export default function JourneyBuilder({
           </div>
           <div
             draggable
-            onDragStart={(e) => onPaletteDragStart(e, 'condition')}
+            onDragStart={(e) => onPaletteDragStart(e, { type: 'condition' })}
             className="flex items-center gap-2 px-4 py-2 bg-surface-container rounded-xl cursor-grab hover:bg-surface-container-high transition-all border border-dashed border-outline-variant/60 active:cursor-grabbing"
             title="Canvas руу чирж тавина уу"
           >
@@ -535,15 +837,60 @@ export default function JourneyBuilder({
           </div>
           <div
             draggable
-            onDragStart={(e) => onPaletteDragStart(e, 'action')}
+            onDragStart={(e) => onPaletteDragStart(e, { type: 'action', actionType: 'send_push' })}
             className="flex items-center gap-2 px-4 py-2 bg-surface-container rounded-xl cursor-grab hover:bg-surface-container-high transition-all border border-dashed border-outline-variant/60 active:cursor-grabbing"
             title="Canvas руу чирж тавина уу"
           >
             <CirclePlay className="w-4 h-4 text-primary" />
             <span className="text-sm font-bold text-on-surface">Үйлдэл</span>
           </div>
+          <div
+            draggable
+            onDragStart={(e) => onPaletteDragStart(e, { type: 'action', actionType: 'send_email' })}
+            className="flex items-center gap-2 px-4 py-2 bg-surface-container rounded-xl cursor-grab hover:bg-surface-container-high transition-all border border-dashed border-outline-variant/60 active:cursor-grabbing"
+            title="Canvas руу чирж тавина уу"
+          >
+            <CirclePlay className="w-4 h-4 text-primary" />
+            <span className="text-sm font-bold text-on-surface">Email</span>
+          </div>
+          <div
+            draggable
+            onDragStart={(e) => onPaletteDragStart(e, { type: 'action', actionType: 'send_sms' })}
+            className="flex items-center gap-2 px-4 py-2 bg-surface-container rounded-xl cursor-grab hover:bg-surface-container-high transition-all border border-dashed border-outline-variant/60 active:cursor-grabbing"
+            title="Canvas руу чирж тавина уу"
+          >
+            <CirclePlay className="w-4 h-4 text-primary" />
+            <span className="text-sm font-bold text-on-surface">SMS</span>
+          </div>
+          <div
+            draggable
+            onDragStart={(e) => onPaletteDragStart(e, { type: 'action', actionType: 'edit_html' })}
+            className="flex items-center gap-2 px-4 py-2 bg-surface-container rounded-xl cursor-grab hover:bg-surface-container-high transition-all border border-dashed border-outline-variant/60 active:cursor-grabbing"
+            title="Canvas руу чирж тавина уу"
+          >
+            <CirclePlay className="w-4 h-4 text-primary" />
+            <span className="text-sm font-bold text-on-surface">HTML</span>
+          </div>
+          <div
+            draggable
+            onDragStart={(e) => onPaletteDragStart(e, { type: 'action', actionType: 'image' })}
+            className="flex items-center gap-2 px-4 py-2 bg-surface-container rounded-xl cursor-grab hover:bg-surface-container-high transition-all border border-dashed border-outline-variant/60 active:cursor-grabbing"
+            title="Canvas руу чирж тавина уу"
+          >
+            <CirclePlay className="w-4 h-4 text-primary" />
+            <span className="text-sm font-bold text-on-surface">Зураг</span>
+          </div>
+          <div
+            draggable
+            onDragStart={(e) => onPaletteDragStart(e, { type: 'action', actionType: 'wait' })}
+            className="flex items-center gap-2 px-4 py-2 bg-surface-container rounded-xl cursor-grab hover:bg-surface-container-high transition-all border border-dashed border-outline-variant/60 active:cursor-grabbing"
+            title="Canvas руу чирж тавина уу"
+          >
+            <CirclePlay className="w-4 h-4 text-primary" />
+            <span className="text-sm font-bold text-on-surface">Хүлээх</span>
+          </div>
         </div>
-        <div className="flex items-center gap-1 pl-4">
+        <div className="flex items-center gap-1 pl-4 shrink-0">
           <button
             type="button"
             onClick={() => setZoom((z) => clamp(Number((z - 0.1).toFixed(2)), 0.5, 1.6))}
@@ -574,7 +921,7 @@ export default function JourneyBuilder({
           className={
             isFullscreen
               ? 'h-full w-full bg-surface-bright overflow-auto relative rounded-3xl border border-outline-variant border-b-[6px]'
-              : 'h-full bg-surface-bright border border-outline-variant rounded-3xl overflow-hidden relative border-b-[6px]'
+              : 'h-full w-full bg-surface-bright border border-outline-variant rounded-3xl overflow-auto relative border-b-[6px]'
           }
           style={{
             backgroundImage: 'radial-gradient(circle at 1px 1px, #D5C4AB 1.5px, transparent 0)',
@@ -733,19 +1080,63 @@ export default function JourneyBuilder({
                           </div>
                         ) : n.type === 'action' ? (
                           <div className="space-y-3">
-                            {n.subtitle ? <p className="text-sm font-semibold text-on-surface-variant/70 italic">{n.subtitle}</p> : null}
-                            <div className="w-full h-28 rounded-xl overflow-hidden relative border border-outline-variant/30">
-                              <img
-                                src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&q=80&w=400"
-                                alt="Preview"
-                                className="w-full h-full object-cover"
-                              />
-                              <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent flex items-end p-3">
-                                <span className="text-[10px] font-black text-white bg-white/20 px-2 py-1 rounded backdrop-blur-md border border-white/30 uppercase tracking-tighter">
-                                  Урьдчилан харах
-                                </span>
-                              </div>
+                            <div className="flex items-center gap-2">
+                              <span className="inline-flex px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border border-outline-variant/30 bg-surface-container">
+                                {actionTypeLabel(n.actionType)}
+                              </span>
+                              {n.subtitle ? <span className="text-xs font-bold text-on-surface-variant/70 truncate">{n.subtitle}</span> : null}
                             </div>
+
+                            {n.actionType === 'edit_html' && n.actionConfig?.kind === 'edit_html' ? (
+                              <div className="rounded-xl overflow-hidden border border-outline-variant/30 bg-surface">
+                                <div className="px-3 py-2 bg-surface-container-lowest border-b border-outline-variant/20 text-[10px] font-black text-outline uppercase tracking-[0.2em]">
+                                  HTML preview
+                                </div>
+                                <div
+                                  className="p-3 text-sm max-h-40 overflow-auto"
+                                  dangerouslySetInnerHTML={{ __html: n.actionConfig.html || '<div class="opacity-60">— empty —</div>' }}
+                                />
+                              </div>
+                            ) : n.actionType === 'image' && n.actionConfig?.kind === 'image' ? (
+                              <div className="rounded-xl overflow-hidden border border-outline-variant/30 bg-surface">
+                                <div className="px-3 py-2 bg-surface-container-lowest border-b border-outline-variant/20 text-[10px] font-black text-outline uppercase tracking-[0.2em]">
+                                  Image
+                                </div>
+                                <div className="p-3">
+                                  <img
+                                    src={n.actionConfig.src}
+                                    alt={n.actionConfig.alt || 'Action image'}
+                                    className="w-full h-28 object-cover rounded-lg border border-outline-variant/20"
+                                  />
+                                </div>
+                              </div>
+                            ) : n.actionType === 'wait' && n.actionConfig?.kind === 'wait' ? (
+                              <div className="rounded-xl border border-outline-variant/30 bg-surface p-4">
+                                <div className="text-[10px] font-black text-outline uppercase tracking-[0.2em]">Delay</div>
+                                <div className="text-sm font-black text-on-surface mt-1">{n.actionConfig.days} өдөр</div>
+                              </div>
+                            ) : n.actionType === 'send_email' && n.actionConfig?.kind === 'send_email' ? (
+                              <div className="rounded-xl border border-outline-variant/30 bg-surface p-4 space-y-2">
+                                <div className="text-[10px] font-black text-outline uppercase tracking-[0.2em]">Email</div>
+                                <div className="text-xs font-black text-on-surface">Subject: {n.actionConfig.subject || '—'}</div>
+                                <div className="text-xs font-semibold text-on-surface-variant/70 line-clamp-3 whitespace-pre-wrap">{n.actionConfig.body || '—'}</div>
+                              </div>
+                            ) : n.actionType === 'send_sms' && n.actionConfig?.kind === 'send_sms' ? (
+                              <div className="rounded-xl border border-outline-variant/30 bg-surface p-4">
+                                <div className="text-[10px] font-black text-outline uppercase tracking-[0.2em]">SMS</div>
+                                <div className="text-xs font-semibold text-on-surface-variant/80 mt-2 whitespace-pre-wrap line-clamp-4">{n.actionConfig.message || '—'}</div>
+                              </div>
+                            ) : n.actionType === 'send_push' && n.actionConfig?.kind === 'send_push' ? (
+                              <div className="rounded-xl border border-outline-variant/30 bg-surface p-4 space-y-2">
+                                <div className="text-[10px] font-black text-outline uppercase tracking-[0.2em]">Push</div>
+                                <div className="text-xs font-black text-on-surface">{n.actionConfig.title || '—'}</div>
+                                <div className="text-xs font-semibold text-on-surface-variant/70 whitespace-pre-wrap line-clamp-3">{n.actionConfig.message || '—'}</div>
+                              </div>
+                            ) : (
+                              <div className="rounded-xl border border-outline-variant/30 bg-surface p-4 text-xs font-bold text-on-surface-variant/70">
+                                Configure this action by clicking “Edit”.
+                              </div>
+                            )}
                           </div>
                         ) : (
                           <div className="space-y-4">

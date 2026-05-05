@@ -16,13 +16,16 @@ import Overview from './pages/dashboard/Overview';
 import PlaceholderSettings from './pages/dashboard/PlaceholderSettings';
 import PlaceholderHelp from './pages/dashboard/PlaceholderHelp';
 import { DEFAULT_ROUTE, type AppRouteId } from './navigation/routes';
-import { MOCK_CAMPAIGNS } from './data/campaignMocks';
+import { MOCK_CAMPAIGNS, type CampaignSummary } from './data/campaignMocks';
 
 export default function App() {
   const [activePage, setActivePage] = useState<AppRouteId>(DEFAULT_ROUTE);
   const [campaigns, setCampaigns] = useState(() => MOCK_CAMPAIGNS);
   const [activeCampaignId, setActiveCampaignId] = useState<string>(MOCK_CAMPAIGNS[0]?.id ?? '');
   const [campaignDetailTab, setCampaignDetailTab] = useState<'overview' | 'flow'>('overview');
+
+  const nextId = () => `cmp_${(Math.random() * 1e9).toFixed(0)}`;
+  const today = () => new Date().toISOString().slice(0, 10);
 
   const activeCampaign = useMemo(() => {
     return campaigns.find((c) => c.id === activeCampaignId) ?? campaigns[0];
@@ -78,7 +81,27 @@ export default function App() {
           />
         );
       case 'campaign-copilot':
-        return <CampaignCopilot />;
+        return (
+          <CampaignCopilot
+            onCreateDraft={(draft, opts) => {
+              const id = nextId();
+              const row: CampaignSummary = {
+                id,
+                name: draft.name,
+                status: 'draft',
+                segment: draft.segment,
+                objective: draft.objective,
+                updatedAt: today(),
+                owner: 'Munkhuush',
+                steps: 1,
+              };
+              setCampaigns((prev) => [row, ...prev]);
+              setActiveCampaignId(id);
+              setCampaignDetailTab(opts?.openFlow ? 'flow' : 'overview');
+              setActivePage('campaign-detail');
+            }}
+          />
+        );
       case 'analytics':
         return <Analytics />;
       case 'segments':
@@ -100,13 +123,13 @@ export default function App() {
   };
 
   return (
-    <div className="flex min-h-screen bg-background text-on-background font-sans">
+    <div className="min-h-screen bg-background text-on-background font-sans overflow-x-hidden">
       <Sidebar activePage={activePage} setActivePage={setActivePage} />
 
-      <div className="flex-1 ml-64 flex flex-col">
+      <div className="min-h-screen pl-64 flex flex-col min-w-0">
         <TopNav activeRouteId={activePage} />
 
-        <main className="mt-24 lg:mt-20 p-8 flex-1 overflow-hidden">{renderPage()}</main>
+        <main className="mt-24 lg:mt-20 p-8 flex-1 overflow-hidden min-w-0">{renderPage()}</main>
       </div>
     </div>
   );
